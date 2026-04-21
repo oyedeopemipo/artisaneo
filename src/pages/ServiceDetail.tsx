@@ -56,6 +56,8 @@ const ServiceDetail = () => {
   const [category, setCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -85,6 +87,35 @@ const ServiceDetail = () => {
     })();
     return () => {
       cancelled = true;
+    };
+  }, [id]);
+
+  // Load + realtime subscribe to availability slots
+  useEffect(() => {
+    if (!id) return;
+    const loadSlots = async () => {
+      const { data } = await supabase
+        .from("service_slots")
+        .select("id,starts_at,ends_at,is_booked")
+        .eq("service_id", id)
+        .gte("starts_at", new Date().toISOString())
+        .order("starts_at", { ascending: true })
+        .limit(20);
+      setSlots((data as Slot[]) ?? []);
+    };
+    loadSlots();
+
+    const channel = supabase
+      .channel(`slots-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "service_slots", filter: `service_id=eq.${id}` },
+        () => loadSlots(),
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
   }, [id]);
 
