@@ -310,7 +310,6 @@ const ServiceDetail = () => {
 
                 {/* Availability */}
                 {(() => {
-                  const openSlots = slots.filter((s) => !s.is_booked);
                   const availableToday = openSlots.some((s) => isSameDay(new Date(s.starts_at), new Date()));
                   const hasAvailability = openSlots.length > 0;
                   return (
@@ -355,6 +354,11 @@ const ServiceDetail = () => {
                           No open slots right now. Check back soon — availability updates live.
                         </p>
                       )}
+                      {selectedSlot && (
+                        <p className="mt-3 text-xs text-primary">
+                          Selected: <span className="font-semibold">{formatSlot(selectedSlot.starts_at)}</span>
+                        </p>
+                      )}
                     </div>
                   );
                 })()}
@@ -364,12 +368,18 @@ const ServiceDetail = () => {
                   size="lg"
                   className="mt-6 w-full"
                   onClick={handleBook}
-                  disabled={slots.filter((s) => !s.is_booked).length === 0}
+                  disabled={!canBook || booking}
                 >
                   <CalendarCheck className="mr-1 h-4 w-4" />
-                  {slots.filter((s) => !s.is_booked).length === 0 ? "No slots available" : "Start booking"}
+                  {booking
+                    ? "Booking..."
+                    : openSlots.length === 0
+                      ? "No slots available"
+                      : canBook
+                        ? "Confirm booking"
+                        : "Select a slot to book"}
                 </Button>
-                <Button variant="outline" size="lg" className="mt-3 w-full" onClick={handleBook}>
+                <Button variant="outline" size="lg" className="mt-3 w-full" onClick={handleMessage}>
                   <MessageCircle className="mr-1 h-4 w-4" /> Message artisan
                 </Button>
               </div>
