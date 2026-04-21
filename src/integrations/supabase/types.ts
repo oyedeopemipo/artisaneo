@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          price_pence: number
+          seller_id: string
+          service_id: string
+          slot_id: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          price_pence: number
+          seller_id: string
+          service_id: string
+          slot_id: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          price_pence?: number
+          seller_id?: string
+          service_id?: string
+          slot_id?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: true
+            referencedRelation: "service_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           icon: string | null
@@ -189,6 +243,7 @@ export type Database = {
     }
     Enums: {
       app_role: "buyer" | "seller" | "admin"
+      booking_status: "pending" | "confirmed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -317,6 +372,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["buyer", "seller", "admin"],
+      booking_status: ["pending", "confirmed", "cancelled"],
     },
   },
 } as const
