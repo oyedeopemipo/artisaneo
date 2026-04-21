@@ -119,14 +119,66 @@ const ServiceDetail = () => {
     };
   }, [id]);
 
-  const handleBook = async () => {
+  const openSlots = slots.filter((s) => !s.is_booked);
+  const selectedSlot = openSlots.find((s) => s.id === selectedSlotId) ?? null;
+  const canBook = !!selectedSlot;
+  const [booking, setBooking] = useState(false);
+
+  const handleMessage = async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) {
+      navigate(`/auth?redirect=/service/${id}`);
+      return;
+    }
+    toast({ title: "Messaging coming soon", description: "Direct chat with artisans is on the way." });
+  };
+
+  const handleBook = async () => {
+    if (!service || !selectedSlot) {
+      toast({
+        title: "Pick a slot first",
+        description: "Select an available time from the sidebar to start booking.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const { data: userRes } = await supabase.auth.getUser();
+    if (!userRes.user) {
       toast({ title: "Sign in required", description: "Please sign in to book this artisan." });
       navigate(`/auth?redirect=/service/${id}`);
       return;
     }
-    toast({ title: "Booking flow coming soon", description: "We'll guide you to confirm your slot shortly." });
+    if (!service.seller_id) {
+      toast({ title: "Unavailable", description: "This service has no assigned seller yet.", variant: "destructive" });
+      return;
+    }
+    if (userRes.user.id === service.seller_id) {
+      toast({ title: "Can't book yourself", description: "Sellers can't book their own services.", variant: "destructive" });
+      return;
+    }
+
+    setBooking(true);
+    const { error } = await supabase.from("bookings").insert({
+      service_id: service.id,
+      slot_id: selectedSlot.id,
+      buyer_id: userRes.user.id,
+      seller_id: service.seller_id,
+      price_pence: service.price_pence,
+    });
+    setBooking(false);
+
+    if (error) {
+      toast({
+        title: "Couldn't book that slot",
+        description: error.message.includes("duplicate")
+          ? "Someone just booked this slot. Pick another."
+          : error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    toast({ title: "Booking requested!", description: "The artisan will confirm shortly." });
+    setSelectedSlotId(null);
   };
 
   if (loading) {
