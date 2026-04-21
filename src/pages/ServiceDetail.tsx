@@ -256,8 +256,66 @@ const ServiceDetail = () => {
                 <p className="font-display text-4xl font-semibold text-primary">{formatGBP(service.price_pence)}</p>
                 <p className="mt-1 text-sm text-muted-foreground">Final price agreed in chat with the artisan.</p>
 
-                <Button variant="hero" size="lg" className="mt-6 w-full" onClick={handleBook}>
-                  <CalendarCheck className="mr-1 h-4 w-4" /> Start booking
+                {/* Availability */}
+                {(() => {
+                  const openSlots = slots.filter((s) => !s.is_booked);
+                  const availableToday = openSlots.some((s) => isSameDay(new Date(s.starts_at), new Date()));
+                  const hasAvailability = openSlots.length > 0;
+                  return (
+                    <div className="mt-6 rounded-xl border border-border bg-secondary/30 p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold">
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              hasAvailability ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"
+                            }`}
+                            aria-hidden
+                          />
+                          {availableToday
+                            ? "Available today"
+                            : hasAvailability
+                              ? "Upcoming availability"
+                              : "Fully booked"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{openSlots.length} slots</span>
+                      </div>
+                      {hasAvailability ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {openSlots.slice(0, 4).map((slot) => {
+                            const selected = selectedSlotId === slot.id;
+                            return (
+                              <button
+                                key={slot.id}
+                                onClick={() => setSelectedSlotId(selected ? null : slot.id)}
+                                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                  selected
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-card hover:border-primary/50"
+                                }`}
+                              >
+                                {formatSlot(slot.starts_at)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          No open slots right now. Check back soon — availability updates live.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="mt-6 w-full"
+                  onClick={handleBook}
+                  disabled={slots.filter((s) => !s.is_booked).length === 0}
+                >
+                  <CalendarCheck className="mr-1 h-4 w-4" />
+                  {slots.filter((s) => !s.is_booked).length === 0 ? "No slots available" : "Start booking"}
                 </Button>
                 <Button variant="outline" size="lg" className="mt-3 w-full" onClick={handleBook}>
                   <MessageCircle className="mr-1 h-4 w-4" /> Message artisan
