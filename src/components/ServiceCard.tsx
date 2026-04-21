@@ -1,4 +1,5 @@
 import { Star, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export type Service = {
   id: string;
@@ -15,7 +16,7 @@ const formatGBP = (pence: number) =>
   new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(pence / 100);
 
 export const ServiceCard = ({ service }: { service: Service }) => (
-  <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card-soft transition-all hover:-translate-y-1 hover:shadow-elegant">
+  <Link to={`/service/${service.id}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card-soft transition-all hover:-translate-y-1 hover:shadow-elegant">
     <div className="relative aspect-[4/3] overflow-hidden bg-gradient-soft">
       {service.image_url ? (
         <img src={service.image_url} alt={service.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -43,5 +44,5 @@ export const ServiceCard = ({ service }: { service: Service }) => (
         </div>
       </div>
     </div>
-  </article>
+  </Link>
 );
