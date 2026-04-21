@@ -24,6 +24,27 @@ type FullService = Service & {
   created_at: string;
 };
 
+type Slot = {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  is_booked: boolean;
+};
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+const formatSlot = (iso: string) => {
+  const d = new Date(iso);
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  if (isSameDay(d, now)) return `Today · ${time}`;
+  if (isSameDay(d, tomorrow)) return `Tomorrow · ${time}`;
+  return `${d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · ${time}`;
+};
+
 const formatGBP = (pence: number) =>
   new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(pence / 100);
 
@@ -35,6 +56,8 @@ const ServiceDetail = () => {
   const [category, setCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -64,6 +87,35 @@ const ServiceDetail = () => {
     })();
     return () => {
       cancelled = true;
+    };
+  }, [id]);
+
+  // Load + realtime subscribe to availability slots
+  useEffect(() => {
+    if (!id) return;
+    const loadSlots = async () => {
+      const { data } = await supabase
+        .from("service_slots")
+        .select("id,starts_at,ends_at,is_booked")
+        .eq("service_id", id)
+        .gte("starts_at", new Date().toISOString())
+        .order("starts_at", { ascending: true })
+        .limit(20);
+      setSlots((data as Slot[]) ?? []);
+    };
+    loadSlots();
+
+    const channel = supabase
+      .channel(`slots-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "service_slots", filter: `service_id=eq.${id}` },
+        () => loadSlots(),
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
   }, [id]);
 
@@ -204,8 +256,66 @@ const ServiceDetail = () => {
                 <p className="font-display text-4xl font-semibold text-primary">{formatGBP(service.price_pence)}</p>
                 <p className="mt-1 text-sm text-muted-foreground">Final price agreed in chat with the artisan.</p>
 
-                <Button variant="hero" size="lg" className="mt-6 w-full" onClick={handleBook}>
-                  <CalendarCheck className="mr-1 h-4 w-4" /> Start booking
+                {/* Availability */}
+                {(() => {
+                  const openSlots = slots.filter((s) => !s.is_booked);
+                  const availableToday = openSlots.some((s) => isSameDay(new Date(s.starts_at), new Date()));
+                  const hasAvailability = openSlots.length > 0;
+                  return (
+                    <div className="mt-6 rounded-xl border border-border bg-secondary/30 p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold">
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              hasAvailability ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"
+                            }`}
+                            aria-hidden
+                          />
+                          {availableToday
+                            ? "Available today"
+                            : hasAvailability
+                              ? "Upcoming availability"
+                              : "Fully booked"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{openSlots.length} slots</span>
+                      </div>
+                      {hasAvailability ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {openSlots.slice(0, 4).map((slot) => {
+                            const selected = selectedSlotId === slot.id;
+                            return (
+                              <button
+                                key={slot.id}
+                                onClick={() => setSelectedSlotId(selected ? null : slot.id)}
+                                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                  selected
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-card hover:border-primary/50"
+                                }`}
+                              >
+                                {formatSlot(slot.starts_at)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          No open slots right now. Check back soon — availability updates live.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="mt-6 w-full"
+                  onClick={handleBook}
+                  disabled={slots.filter((s) => !s.is_booked).length === 0}
+                >
+                  <CalendarCheck className="mr-1 h-4 w-4" />
+                  {slots.filter((s) => !s.is_booked).length === 0 ? "No slots available" : "Start booking"}
                 </Button>
                 <Button variant="outline" size="lg" className="mt-3 w-full" onClick={handleBook}>
                   <MessageCircle className="mr-1 h-4 w-4" /> Message artisan

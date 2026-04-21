@@ -65,6 +65,44 @@ export type Database = {
         }
         Relationships: []
       }
+      service_slots: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          is_booked: boolean
+          seller_id: string
+          service_id: string
+          starts_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          is_booked?: boolean
+          seller_id: string
+          service_id: string
+          starts_at: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          is_booked?: boolean
+          seller_id?: string
+          service_id?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_slots_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           category_id: string | null
