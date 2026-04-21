@@ -24,6 +24,27 @@ type FullService = Service & {
   created_at: string;
 };
 
+type Slot = {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  is_booked: boolean;
+};
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+const formatSlot = (iso: string) => {
+  const d = new Date(iso);
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  if (isSameDay(d, now)) return `Today · ${time}`;
+  if (isSameDay(d, tomorrow)) return `Tomorrow · ${time}`;
+  return `${d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · ${time}`;
+};
+
 const formatGBP = (pence: number) =>
   new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(pence / 100);
 
