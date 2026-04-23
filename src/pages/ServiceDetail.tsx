@@ -408,6 +408,11 @@ const ServiceDetail = () => {
                     Profile details coming soon. You'll meet the artisan in chat once you start booking.
                   </p>
                 )}
+                {service.seller_id && (
+                  <Button variant="outline" className="mt-5 w-full" asChild>
+                    <Link to={`/seller/${service.seller_id}`}>View full seller profile</Link>
+                  </Button>
+                )}
               </div>
             </aside>
           </div>
