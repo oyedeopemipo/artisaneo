@@ -9,10 +9,37 @@ export const Navbar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
+    const loadSellerRole = async (userId: string | null) => {
+      if (!userId) {
+        setIsSeller(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "seller")
+        .maybeSingle();
+
+      setIsSeller(Boolean(data));
+    };
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      void loadSellerRole(nextUser?.id ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data }) => {
+      const nextUser = data.session?.user ?? null;
+      setUser(nextUser);
+      void loadSellerRole(nextUser?.id ?? null);
+    });
+
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -45,9 +72,16 @@ export const Navbar = () => {
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
-            <Button variant="ghost" size="sm" onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}>
-              <LogOut className="mr-2 h-4 w-4" /> Sign out
-            </Button>
+            <>
+              {isSeller && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/seller/profile">Seller profile</Link>
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}>
+                <LogOut className="mr-2 h-4 w-4" /> Sign out
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
