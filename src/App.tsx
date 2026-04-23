@@ -8,6 +8,7 @@ import Browse from "./pages/Browse.tsx";
 import ServiceDetail from "./pages/ServiceDetail.tsx";
 import Auth from "./pages/Auth.tsx";
 import SellerProfile from "./pages/SellerProfile.tsx";
+import PublicSellerProfile from "./pages/PublicSellerProfile.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/service/:id" element={<ServiceDetail />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/seller/profile" element={<SellerProfile />} />
+          <Route path="/seller/:id" element={<PublicSellerProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
