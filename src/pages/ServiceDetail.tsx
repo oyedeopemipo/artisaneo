@@ -158,21 +158,20 @@ const ServiceDetail = () => {
     }
 
     setBooking(true);
-    const { error } = await supabase.from("bookings").insert({
-      service_id: service.id,
-      slot_id: selectedSlot.id,
-      buyer_id: userRes.user.id,
-      seller_id: service.seller_id,
-      price_pence: service.price_pence,
+    const { error } = await supabase.rpc("create_booking", {
+      _service_id: service.id,
+      _slot_id: selectedSlot.id,
     });
     setBooking(false);
 
     if (error) {
+      const msg = error.message || "";
+      const isTaken = msg.includes("Slot already booked") || msg.includes("duplicate");
       toast({
         title: "Couldn't book that slot",
-        description: error.message.includes("duplicate")
+        description: isTaken
           ? "Someone just booked this slot. Pick another."
-          : error.message,
+          : "Booking failed. Please try again or contact support.",
         variant: "destructive",
       });
       return;
