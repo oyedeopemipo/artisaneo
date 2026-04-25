@@ -367,7 +367,14 @@ const ServiceDetail = () => {
                   const availableToday = openSlots.some((s) => isSameDay(new Date(s.starts_at), new Date()));
                   const hasAvailability = openSlots.length > 0;
                   return (
-                    <div className="mt-6 rounded-xl border border-border bg-secondary/30 p-4">
+                    <div
+                      ref={slotPickerRef}
+                      className={`mt-6 rounded-xl border bg-secondary/30 p-4 transition-all ${
+                        highlightSlots
+                          ? "border-primary ring-2 ring-primary/40 animate-pulse"
+                          : "border-border"
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
                         <span className="inline-flex items-center gap-2 text-sm font-semibold">
                           <span
