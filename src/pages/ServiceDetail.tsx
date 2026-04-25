@@ -93,17 +93,26 @@ const ServiceDetail = () => {
 
   // Load + realtime subscribe to availability slots
   useEffect(() => {
+  const slotPickerRef = useRef<HTMLDivElement | null>(null);
+  const [highlightSlots, setHighlightSlots] = useState(false);
+
+  const loadSlots = useCallback(async () => {
+    if (!id) return [] as Slot[];
+    const { data } = await supabase
+      .from("service_slots")
+      .select("id,starts_at,ends_at,is_booked")
+      .eq("service_id", id)
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(20);
+    const next = (data as Slot[]) ?? [];
+    setSlots(next);
+    return next;
+  }, [id]);
+
+  // Load + realtime subscribe to availability slots
+  useEffect(() => {
     if (!id) return;
-    const loadSlots = async () => {
-      const { data } = await supabase
-        .from("service_slots")
-        .select("id,starts_at,ends_at,is_booked")
-        .eq("service_id", id)
-        .gte("starts_at", new Date().toISOString())
-        .order("starts_at", { ascending: true })
-        .limit(20);
-      setSlots((data as Slot[]) ?? []);
-    };
     loadSlots();
 
     const channel = supabase
@@ -118,12 +127,44 @@ const ServiceDetail = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [id, loadSlots]);
 
   const openSlots = slots.filter((s) => !s.is_booked);
   const selectedSlot = openSlots.find((s) => s.id === selectedSlotId) ?? null;
   const canBook = !!selectedSlot;
   const [booking, setBooking] = useState(false);
+
+  const focusSlotPicker = useCallback(() => {
+    slotPickerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightSlots(true);
+    window.setTimeout(() => setHighlightSlots(false), 1600);
+  }, []);
+
+  const promptPickAnotherSlot = useCallback(
+    async (titleOverride?: string) => {
+      // Refresh availability and clear the stale selection so the buyer
+      // can immediately pick a different open slot.
+      const fresh = await loadSlots();
+      setSelectedSlotId(null);
+      const stillHasOpen = fresh.some((s) => !s.is_booked);
+
+      sonnerToast.error(titleOverride ?? "That slot was just taken", {
+        description: stillHasOpen
+          ? "Don't worry — pick another available time and we'll try again."
+          : "No other open slots right now. We'll update live as availability changes.",
+        action: stillHasOpen
+          ? {
+              label: "Pick another slot",
+              onClick: () => focusSlotPicker(),
+            }
+          : undefined,
+        duration: 8000,
+      });
+
+      if (stillHasOpen) focusSlotPicker();
+    },
+    [loadSlots, focusSlotPicker],
+  );
 
   const handleMessage = async () => {
     const { data } = await supabase.auth.getUser();
@@ -141,6 +182,7 @@ const ServiceDetail = () => {
         description: "Select an available time from the sidebar to start booking.",
         variant: "destructive",
       });
+      focusSlotPicker();
       return;
     }
     const { data: userRes } = await supabase.auth.getUser();
@@ -167,12 +209,26 @@ const ServiceDetail = () => {
 
     if (error) {
       const msg = error.message || "";
-      const isTaken = msg.includes("Slot already booked") || msg.includes("duplicate");
+      const code = (error as { code?: string }).code;
+      // Concurrency: another buyer grabbed this slot first.
+      const isTaken =
+        code === "23505" ||
+        msg.includes("Slot already booked") ||
+        msg.includes("duplicate") ||
+        msg.includes("bookings_active_slot_unique");
+      // Stale slot (e.g., removed/changed) — also recoverable by re-picking.
+      const isInvalidSlot = code === "22023" || msg.includes("Invalid slot");
+
+      if (isTaken || isInvalidSlot) {
+        await promptPickAnotherSlot(
+          isTaken ? "That slot was just taken" : "That slot is no longer available",
+        );
+        return;
+      }
+
       toast({
         title: "Couldn't book that slot",
-        description: isTaken
-          ? "Someone just booked this slot. Pick another."
-          : "Booking failed. Please try again or contact support.",
+        description: "Booking failed. Please try again or contact support.",
         variant: "destructive",
       });
       return;
