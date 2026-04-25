@@ -91,8 +91,6 @@ const ServiceDetail = () => {
     };
   }, [id]);
 
-  // Load + realtime subscribe to availability slots
-  useEffect(() => {
   const slotPickerRef = useRef<HTMLDivElement | null>(null);
   const [highlightSlots, setHighlightSlots] = useState(false);
 
