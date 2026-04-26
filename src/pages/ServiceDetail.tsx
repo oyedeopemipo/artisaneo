@@ -125,6 +125,7 @@ const ServiceDetail = () => {
 
   const slotPickerRef = useRef<HTMLDivElement | null>(null);
   const [highlightSlots, setHighlightSlots] = useState(false);
+  const [refreshingSlots, setRefreshingSlots] = useState(false);
 
   const loadSlots = useCallback(async () => {
     if (!id) return [] as Slot[];
@@ -139,6 +140,18 @@ const ServiceDetail = () => {
     setSlots(next);
     return next;
   }, [id]);
+
+  const handleManualRefresh = useCallback(async () => {
+    setRefreshingSlots(true);
+    setSelectedSlotId(null);
+    const fresh = await loadSlots();
+    setRefreshingSlots(false);
+    sonnerToast.success("Availability refreshed", {
+      description: fresh.some((s) => !s.is_booked)
+        ? "Pick a slot and try booking again."
+        : "No open slots right now — try again shortly.",
+    });
+  }, [loadSlots]);
 
   // Load + realtime subscribe to availability slots
   useEffect(() => {
