@@ -267,6 +267,52 @@ const ServiceDetail = () => {
     setSelectedSlotId(null);
   };
 
+  const handleToggleWaitlist = async () => {
+    if (!service) return;
+    const { data: userRes } = await supabase.auth.getUser();
+    if (!userRes.user) {
+      navigate(`/auth?redirect=/service/${id}`);
+      return;
+    }
+    if (userRes.user.id === service.seller_id) {
+      toast({
+        title: "Not available",
+        description: "Sellers can't waitlist their own services.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setWaitlistLoading(true);
+    if (onWaitlist) {
+      const { error } = await supabase
+        .from("service_waitlist")
+        .delete()
+        .eq("service_id", service.id)
+        .eq("user_id", userRes.user.id);
+      setWaitlistLoading(false);
+      if (error) {
+        toast({ title: "Couldn't leave the waitlist", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      setOnWaitlist(false);
+      toast({ title: "Removed from waitlist", description: "You won't be notified for this service." });
+    } else {
+      const { error } = await supabase
+        .from("service_waitlist")
+        .insert({ service_id: service.id, user_id: userRes.user.id });
+      setWaitlistLoading(false);
+      if (error) {
+        toast({ title: "Couldn't join the waitlist", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      setOnWaitlist(true);
+      toast({
+        title: "You're on the waitlist!",
+        description: "We'll notify you as soon as new slots open up.",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
