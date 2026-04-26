@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, MapPin, ArrowLeft, CalendarCheck, MessageCircle, ShieldCheck, Clock, BellRing, BellOff } from "lucide-react";
+import { Star, MapPin, ArrowLeft, CalendarCheck, MessageCircle, ShieldCheck, Clock, BellRing, BellOff, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import type { Service } from "@/components/ServiceCard";
