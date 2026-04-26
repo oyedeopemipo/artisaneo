@@ -510,22 +510,33 @@ const ServiceDetail = () => {
                   );
                 })()}
 
-                <Button
-                  variant="hero"
-                  size="lg"
-                  className="mt-6 w-full"
-                  onClick={handleBook}
-                  disabled={!canBook || booking}
-                >
-                  <CalendarCheck className="mr-1 h-4 w-4" />
-                  {booking
-                    ? "Booking..."
-                    : openSlots.length === 0
-                      ? "No slots available"
-                      : canBook
-                        ? "Confirm booking"
-                        : "Select a slot to book"}
-                </Button>
+                {openSlots.length === 0 ? (
+                  <Button
+                    variant={onWaitlist ? "outline" : "hero"}
+                    size="lg"
+                    className="mt-6 w-full"
+                    onClick={handleToggleWaitlist}
+                    disabled={waitlistLoading || (!!currentUserId && currentUserId === service.seller_id)}
+                  >
+                    {onWaitlist ? <BellOff className="mr-1 h-4 w-4" /> : <BellRing className="mr-1 h-4 w-4" />}
+                    {waitlistLoading
+                      ? "Saving..."
+                      : onWaitlist
+                        ? "Leave waitlist"
+                        : "Notify me when slots open"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="hero"
+                    size="lg"
+                    className="mt-6 w-full"
+                    onClick={handleBook}
+                    disabled={!canBook || booking}
+                  >
+                    <CalendarCheck className="mr-1 h-4 w-4" />
+                    {booking ? "Booking..." : canBook ? "Confirm booking" : "Select a slot to book"}
+                  </Button>
+                )}
                 <Button variant="outline" size="lg" className="mt-3 w-full" onClick={handleMessage}>
                   <MessageCircle className="mr-1 h-4 w-4" /> Message artisan
                 </Button>
