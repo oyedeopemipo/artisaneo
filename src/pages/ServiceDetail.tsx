@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, MapPin, ArrowLeft, CalendarCheck, MessageCircle, ShieldCheck, Clock, BellRing, BellOff } from "lucide-react";
+import { Star, MapPin, ArrowLeft, CalendarCheck, MessageCircle, ShieldCheck, Clock, BellRing, BellOff, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import type { Service } from "@/components/ServiceCard";
@@ -125,6 +125,7 @@ const ServiceDetail = () => {
 
   const slotPickerRef = useRef<HTMLDivElement | null>(null);
   const [highlightSlots, setHighlightSlots] = useState(false);
+  const [refreshingSlots, setRefreshingSlots] = useState(false);
 
   const loadSlots = useCallback(async () => {
     if (!id) return [] as Slot[];
@@ -139,6 +140,18 @@ const ServiceDetail = () => {
     setSlots(next);
     return next;
   }, [id]);
+
+  const handleManualRefresh = useCallback(async () => {
+    setRefreshingSlots(true);
+    setSelectedSlotId(null);
+    const fresh = await loadSlots();
+    setRefreshingSlots(false);
+    sonnerToast.success("Availability refreshed", {
+      description: fresh.some((s) => !s.is_booked)
+        ? "Pick a slot and try booking again."
+        : "No open slots right now — try again shortly.",
+    });
+  }, [loadSlots]);
 
   // Load + realtime subscribe to availability slots
   useEffect(() => {
@@ -453,7 +466,7 @@ const ServiceDetail = () => {
                           : "border-border"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="inline-flex items-center gap-2 text-sm font-semibold">
                           <span
                             className={`h-2 w-2 rounded-full ${
@@ -467,7 +480,21 @@ const ServiceDetail = () => {
                               ? "Upcoming availability"
                               : "Fully booked"}
                         </span>
-                        <span className="text-xs text-muted-foreground">{openSlots.length} slots</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{openSlots.length} slots</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={handleManualRefresh}
+                            disabled={refreshingSlots}
+                            aria-label="Refresh availability"
+                          >
+                            <RefreshCw className={`h-3.5 w-3.5 ${refreshingSlots ? "animate-spin" : ""}`} />
+                            <span className="ml-1">{refreshingSlots ? "Refreshing" : "Refresh"}</span>
+                          </Button>
+                        </div>
                       </div>
                       {hasAvailability ? (
                         <div className="mt-3 flex flex-wrap gap-2">
