@@ -466,7 +466,7 @@ const ServiceDetail = () => {
                           : "border-border"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="inline-flex items-center gap-2 text-sm font-semibold">
                           <span
                             className={`h-2 w-2 rounded-full ${
@@ -480,7 +480,21 @@ const ServiceDetail = () => {
                               ? "Upcoming availability"
                               : "Fully booked"}
                         </span>
-                        <span className="text-xs text-muted-foreground">{openSlots.length} slots</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{openSlots.length} slots</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={handleManualRefresh}
+                            disabled={refreshingSlots}
+                            aria-label="Refresh availability"
+                          >
+                            <RefreshCw className={`h-3.5 w-3.5 ${refreshingSlots ? "animate-spin" : ""}`} />
+                            <span className="ml-1">{refreshingSlots ? "Refreshing" : "Refresh"}</span>
+                          </Button>
+                        </div>
                       </div>
                       {hasAvailability ? (
                         <div className="mt-3 flex flex-wrap gap-2">
