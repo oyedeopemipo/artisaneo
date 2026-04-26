@@ -59,6 +59,38 @@ const ServiceDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [onWaitlist, setOnWaitlist] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Check if current user is already on this service's waitlist
+  useEffect(() => {
+    if (!id || !currentUserId) {
+      setOnWaitlist(false);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("service_waitlist")
+      .select("id")
+      .eq("service_id", id)
+      .eq("user_id", currentUserId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setOnWaitlist(!!data);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, currentUserId]);
 
   useEffect(() => {
     if (!id) return;
