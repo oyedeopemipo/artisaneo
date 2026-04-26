@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, MapPin, ArrowLeft, CalendarCheck, MessageCircle, ShieldCheck, Clock } from "lucide-react";
+import { Star, MapPin, ArrowLeft, CalendarCheck, MessageCircle, ShieldCheck, Clock, BellRing, BellOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import type { Service } from "@/components/ServiceCard";
@@ -59,6 +59,38 @@ const ServiceDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [onWaitlist, setOnWaitlist] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Check if current user is already on this service's waitlist
+  useEffect(() => {
+    if (!id || !currentUserId) {
+      setOnWaitlist(false);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("service_waitlist")
+      .select("id")
+      .eq("service_id", id)
+      .eq("user_id", currentUserId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setOnWaitlist(!!data);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, currentUserId]);
 
   useEffect(() => {
     if (!id) return;
@@ -233,6 +265,52 @@ const ServiceDetail = () => {
     }
     toast({ title: "Booking requested!", description: "The artisan will confirm shortly." });
     setSelectedSlotId(null);
+  };
+
+  const handleToggleWaitlist = async () => {
+    if (!service) return;
+    const { data: userRes } = await supabase.auth.getUser();
+    if (!userRes.user) {
+      navigate(`/auth?redirect=/service/${id}`);
+      return;
+    }
+    if (userRes.user.id === service.seller_id) {
+      toast({
+        title: "Not available",
+        description: "Sellers can't waitlist their own services.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setWaitlistLoading(true);
+    if (onWaitlist) {
+      const { error } = await supabase
+        .from("service_waitlist")
+        .delete()
+        .eq("service_id", service.id)
+        .eq("user_id", userRes.user.id);
+      setWaitlistLoading(false);
+      if (error) {
+        toast({ title: "Couldn't leave the waitlist", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      setOnWaitlist(false);
+      toast({ title: "Removed from waitlist", description: "You won't be notified for this service." });
+    } else {
+      const { error } = await supabase
+        .from("service_waitlist")
+        .insert({ service_id: service.id, user_id: userRes.user.id });
+      setWaitlistLoading(false);
+      if (error) {
+        toast({ title: "Couldn't join the waitlist", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      setOnWaitlist(true);
+      toast({
+        title: "You're on the waitlist!",
+        description: "We'll notify you as soon as new slots open up.",
+      });
+    }
   };
 
   if (loading) {
@@ -411,9 +489,17 @@ const ServiceDetail = () => {
                           })}
                         </div>
                       ) : (
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          No open slots right now. Check back soon — availability updates live.
-                        </p>
+                        <div className="mt-3 space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            No open slots right now. Join the waitlist and we'll notify you the moment new
+                            availability opens.
+                          </p>
+                          {onWaitlist && (
+                            <p className="text-xs font-medium text-primary inline-flex items-center gap-1">
+                              <BellRing className="h-3 w-3" /> You're on the waitlist for this service.
+                            </p>
+                          )}
+                        </div>
                       )}
                       {selectedSlot && (
                         <p className="mt-3 text-xs text-primary">
@@ -424,22 +510,33 @@ const ServiceDetail = () => {
                   );
                 })()}
 
-                <Button
-                  variant="hero"
-                  size="lg"
-                  className="mt-6 w-full"
-                  onClick={handleBook}
-                  disabled={!canBook || booking}
-                >
-                  <CalendarCheck className="mr-1 h-4 w-4" />
-                  {booking
-                    ? "Booking..."
-                    : openSlots.length === 0
-                      ? "No slots available"
-                      : canBook
-                        ? "Confirm booking"
-                        : "Select a slot to book"}
-                </Button>
+                {openSlots.length === 0 ? (
+                  <Button
+                    variant={onWaitlist ? "outline" : "hero"}
+                    size="lg"
+                    className="mt-6 w-full"
+                    onClick={handleToggleWaitlist}
+                    disabled={waitlistLoading || (!!currentUserId && currentUserId === service.seller_id)}
+                  >
+                    {onWaitlist ? <BellOff className="mr-1 h-4 w-4" /> : <BellRing className="mr-1 h-4 w-4" />}
+                    {waitlistLoading
+                      ? "Saving..."
+                      : onWaitlist
+                        ? "Leave waitlist"
+                        : "Notify me when slots open"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="hero"
+                    size="lg"
+                    className="mt-6 w-full"
+                    onClick={handleBook}
+                    disabled={!canBook || booking}
+                  >
+                    <CalendarCheck className="mr-1 h-4 w-4" />
+                    {booking ? "Booking..." : canBook ? "Confirm booking" : "Select a slot to book"}
+                  </Button>
+                )}
                 <Button variant="outline" size="lg" className="mt-3 w-full" onClick={handleMessage}>
                   <MessageCircle className="mr-1 h-4 w-4" /> Message artisan
                 </Button>

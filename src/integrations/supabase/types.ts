@@ -157,6 +157,30 @@ export type Database = {
           },
         ]
       }
+      service_waitlist: {
+        Row: {
+          created_at: string
+          id: string
+          notified_at: string | null
+          service_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          service_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          service_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           category_id: string | null
