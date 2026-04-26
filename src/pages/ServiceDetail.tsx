@@ -489,9 +489,17 @@ const ServiceDetail = () => {
                           })}
                         </div>
                       ) : (
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          No open slots right now. Check back soon — availability updates live.
-                        </p>
+                        <div className="mt-3 space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            No open slots right now. Join the waitlist and we'll notify you the moment new
+                            availability opens.
+                          </p>
+                          {onWaitlist && (
+                            <p className="text-xs font-medium text-primary inline-flex items-center gap-1">
+                              <BellRing className="h-3 w-3" /> You're on the waitlist for this service.
+                            </p>
+                          )}
+                        </div>
                       )}
                       {selectedSlot && (
                         <p className="mt-3 text-xs text-primary">
