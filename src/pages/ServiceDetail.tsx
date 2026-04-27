@@ -130,6 +130,8 @@ const ServiceDetail = () => {
   // Refresh can auto-retry the same time if it becomes available again.
   const [lastFailedSlotId, setLastFailedSlotId] = useState<string | null>(null);
   const [lastFailedStartsAt, setLastFailedStartsAt] = useState<string | null>(null);
+  const handleBookRef = useRef<((slot: Slot) => Promise<void>) | null>(null);
+  const focusSlotPickerRef = useRef<(() => void) | null>(null);
 
   const loadSlots = useCallback(async () => {
     if (!id) return [] as Slot[];
