@@ -265,8 +265,9 @@ const ServiceDetail = () => {
     toast({ title: "Messaging coming soon", description: "Direct chat with artisans is on the way." });
   };
 
-  const handleBook = async () => {
-    if (!service || !selectedSlot) {
+  const handleBook = async (slotOverride?: Slot) => {
+    const slotToBook = slotOverride ?? selectedSlot;
+    if (!service || !slotToBook) {
       toast({
         title: "Pick a slot first",
         description: "Select an available time from the sidebar to start booking.",
@@ -293,7 +294,7 @@ const ServiceDetail = () => {
     setBooking(true);
     const { error } = await supabase.rpc("create_booking", {
       _service_id: service.id,
-      _slot_id: selectedSlot.id,
+      _slot_id: slotToBook.id,
     });
     setBooking(false);
 
@@ -310,6 +311,9 @@ const ServiceDetail = () => {
       const isInvalidSlot = code === "22023" || msg.includes("Invalid slot");
 
       if (isTaken || isInvalidSlot) {
+        // Remember what the buyer wanted so Refresh can auto-retry later.
+        setLastFailedSlotId(slotToBook.id);
+        setLastFailedStartsAt(slotToBook.starts_at);
         await promptPickAnotherSlot(
           isTaken ? "That slot was just taken" : "That slot is no longer available",
         );
@@ -325,7 +329,14 @@ const ServiceDetail = () => {
     }
     toast({ title: "Booking requested!", description: "The artisan will confirm shortly." });
     setSelectedSlotId(null);
+    setLastFailedSlotId(null);
+    setLastFailedStartsAt(null);
   };
+
+  // Expose latest handlers to refs so handleManualRefresh can call them
+  // without creating a circular useCallback dependency.
+  handleBookRef.current = handleBook;
+  focusSlotPickerRef.current = focusSlotPicker;
 
   const handleToggleWaitlist = async () => {
     if (!service) return;
