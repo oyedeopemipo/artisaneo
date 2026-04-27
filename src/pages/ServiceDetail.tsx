@@ -147,15 +147,56 @@ const ServiceDetail = () => {
 
   const handleManualRefresh = useCallback(async () => {
     setRefreshingSlots(true);
-    setSelectedSlotId(null);
     const fresh = await loadSlots();
     setRefreshingSlots(false);
+
+    // If the buyer had a previously failed booking attempt, try to auto-retry
+    // with the same slot when it's available again, or fall back to the same
+    // start time if the slot id changed.
+    if (lastFailedSlotId || lastFailedStartsAt) {
+      const matchById = lastFailedSlotId
+        ? fresh.find((s) => s.id === lastFailedSlotId && !s.is_booked)
+        : null;
+      const matchByTime = !matchById && lastFailedStartsAt
+        ? fresh.find((s) => s.starts_at === lastFailedStartsAt && !s.is_booked)
+        : null;
+      const match = matchById ?? matchByTime;
+
+      if (match) {
+        setSelectedSlotId(match.id);
+        sonnerToast.success("Your time is available again", {
+          description: `Retrying booking for ${formatSlot(match.starts_at)}…`,
+        });
+        // Defer to next tick so state updates land before retry reads them.
+        setTimeout(() => {
+          void handleBookRef.current?.(match);
+        }, 0);
+        return;
+      }
+
+      // Previous time is gone — clear selection and prompt to pick a new one.
+      setSelectedSlotId(null);
+      const stillHasOpen = fresh.some((s) => !s.is_booked);
+      sonnerToast.error("Your previous time isn't available", {
+        description: stillHasOpen
+          ? "Pick another open slot and we'll try booking again."
+          : "No open slots right now — we'll keep checking.",
+        action: stillHasOpen
+          ? { label: "Pick another slot", onClick: () => focusSlotPicker() }
+          : undefined,
+        duration: 8000,
+      });
+      if (stillHasOpen) focusSlotPicker();
+      return;
+    }
+
+    setSelectedSlotId(null);
     sonnerToast.success("Availability refreshed", {
       description: fresh.some((s) => !s.is_booked)
         ? "Pick a slot and try booking again."
         : "No open slots right now — try again shortly.",
     });
-  }, [loadSlots]);
+  }, [loadSlots, lastFailedSlotId, lastFailedStartsAt]);
 
   // Load + realtime subscribe to availability slots
   useEffect(() => {
