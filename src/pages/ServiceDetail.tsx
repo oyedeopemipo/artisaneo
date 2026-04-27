@@ -184,11 +184,11 @@ const ServiceDetail = () => {
           ? "Pick another open slot and we'll try booking again."
           : "No open slots right now — we'll keep checking.",
         action: stillHasOpen
-          ? { label: "Pick another slot", onClick: () => focusSlotPicker() }
+          ? { label: "Pick another slot", onClick: () => focusSlotPickerRef.current?.() }
           : undefined,
         duration: 8000,
       });
-      if (stillHasOpen) focusSlotPicker();
+      if (stillHasOpen) focusSlotPickerRef.current?.();
       return;
     }
 
