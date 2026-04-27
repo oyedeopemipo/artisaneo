@@ -615,7 +615,7 @@ const ServiceDetail = () => {
                     variant="hero"
                     size="lg"
                     className="mt-6 w-full"
-                    onClick={handleBook}
+                    onClick={() => handleBook()}
                     disabled={!canBook || booking}
                   >
                     <CalendarCheck className="mr-1 h-4 w-4" />
