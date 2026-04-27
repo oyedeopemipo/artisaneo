@@ -126,6 +126,12 @@ const ServiceDetail = () => {
   const slotPickerRef = useRef<HTMLDivElement | null>(null);
   const [highlightSlots, setHighlightSlots] = useState(false);
   const [refreshingSlots, setRefreshingSlots] = useState(false);
+  // Tracks the slot the buyer last tried to book that failed, so a manual
+  // Refresh can auto-retry the same time if it becomes available again.
+  const [lastFailedSlotId, setLastFailedSlotId] = useState<string | null>(null);
+  const [lastFailedStartsAt, setLastFailedStartsAt] = useState<string | null>(null);
+  const handleBookRef = useRef<((slot: Slot) => Promise<void>) | null>(null);
+  const focusSlotPickerRef = useRef<(() => void) | null>(null);
 
   const loadSlots = useCallback(async () => {
     if (!id) return [] as Slot[];
@@ -143,15 +149,56 @@ const ServiceDetail = () => {
 
   const handleManualRefresh = useCallback(async () => {
     setRefreshingSlots(true);
-    setSelectedSlotId(null);
     const fresh = await loadSlots();
     setRefreshingSlots(false);
+
+    // If the buyer had a previously failed booking attempt, try to auto-retry
+    // with the same slot when it's available again, or fall back to the same
+    // start time if the slot id changed.
+    if (lastFailedSlotId || lastFailedStartsAt) {
+      const matchById = lastFailedSlotId
+        ? fresh.find((s) => s.id === lastFailedSlotId && !s.is_booked)
+        : null;
+      const matchByTime = !matchById && lastFailedStartsAt
+        ? fresh.find((s) => s.starts_at === lastFailedStartsAt && !s.is_booked)
+        : null;
+      const match = matchById ?? matchByTime;
+
+      if (match) {
+        setSelectedSlotId(match.id);
+        sonnerToast.success("Your time is available again", {
+          description: `Retrying booking for ${formatSlot(match.starts_at)}…`,
+        });
+        // Defer to next tick so state updates land before retry reads them.
+        setTimeout(() => {
+          void handleBookRef.current?.(match);
+        }, 0);
+        return;
+      }
+
+      // Previous time is gone — clear selection and prompt to pick a new one.
+      setSelectedSlotId(null);
+      const stillHasOpen = fresh.some((s) => !s.is_booked);
+      sonnerToast.error("Your previous time isn't available", {
+        description: stillHasOpen
+          ? "Pick another open slot and we'll try booking again."
+          : "No open slots right now — we'll keep checking.",
+        action: stillHasOpen
+          ? { label: "Pick another slot", onClick: () => focusSlotPickerRef.current?.() }
+          : undefined,
+        duration: 8000,
+      });
+      if (stillHasOpen) focusSlotPickerRef.current?.();
+      return;
+    }
+
+    setSelectedSlotId(null);
     sonnerToast.success("Availability refreshed", {
       description: fresh.some((s) => !s.is_booked)
         ? "Pick a slot and try booking again."
         : "No open slots right now — try again shortly.",
     });
-  }, [loadSlots]);
+  }, [loadSlots, lastFailedSlotId, lastFailedStartsAt]);
 
   // Load + realtime subscribe to availability slots
   useEffect(() => {
@@ -218,8 +265,9 @@ const ServiceDetail = () => {
     toast({ title: "Messaging coming soon", description: "Direct chat with artisans is on the way." });
   };
 
-  const handleBook = async () => {
-    if (!service || !selectedSlot) {
+  const handleBook = async (slotOverride?: Slot) => {
+    const slotToBook = slotOverride ?? selectedSlot;
+    if (!service || !slotToBook) {
       toast({
         title: "Pick a slot first",
         description: "Select an available time from the sidebar to start booking.",
@@ -246,7 +294,7 @@ const ServiceDetail = () => {
     setBooking(true);
     const { error } = await supabase.rpc("create_booking", {
       _service_id: service.id,
-      _slot_id: selectedSlot.id,
+      _slot_id: slotToBook.id,
     });
     setBooking(false);
 
@@ -263,6 +311,9 @@ const ServiceDetail = () => {
       const isInvalidSlot = code === "22023" || msg.includes("Invalid slot");
 
       if (isTaken || isInvalidSlot) {
+        // Remember what the buyer wanted so Refresh can auto-retry later.
+        setLastFailedSlotId(slotToBook.id);
+        setLastFailedStartsAt(slotToBook.starts_at);
         await promptPickAnotherSlot(
           isTaken ? "That slot was just taken" : "That slot is no longer available",
         );
@@ -278,7 +329,14 @@ const ServiceDetail = () => {
     }
     toast({ title: "Booking requested!", description: "The artisan will confirm shortly." });
     setSelectedSlotId(null);
+    setLastFailedSlotId(null);
+    setLastFailedStartsAt(null);
   };
+
+  // Expose latest handlers to refs so handleManualRefresh can call them
+  // without creating a circular useCallback dependency.
+  handleBookRef.current = handleBook;
+  focusSlotPickerRef.current = focusSlotPicker;
 
   const handleToggleWaitlist = async () => {
     if (!service) return;
@@ -557,7 +615,7 @@ const ServiceDetail = () => {
                     variant="hero"
                     size="lg"
                     className="mt-6 w-full"
-                    onClick={handleBook}
+                    onClick={() => handleBook()}
                     disabled={!canBook || booking}
                   >
                     <CalendarCheck className="mr-1 h-4 w-4" />
