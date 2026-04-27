@@ -126,6 +126,10 @@ const ServiceDetail = () => {
   const slotPickerRef = useRef<HTMLDivElement | null>(null);
   const [highlightSlots, setHighlightSlots] = useState(false);
   const [refreshingSlots, setRefreshingSlots] = useState(false);
+  // Tracks the slot the buyer last tried to book that failed, so a manual
+  // Refresh can auto-retry the same time if it becomes available again.
+  const [lastFailedSlotId, setLastFailedSlotId] = useState<string | null>(null);
+  const [lastFailedStartsAt, setLastFailedStartsAt] = useState<string | null>(null);
 
   const loadSlots = useCallback(async () => {
     if (!id) return [] as Slot[];
