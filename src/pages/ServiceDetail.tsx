@@ -158,13 +158,46 @@ const ServiceDetail = () => {
     // with the same slot when it's available again, or fall back to the same
     // start time if the slot id changed.
     if (lastFailedSlotId || lastFailedStartsAt) {
+      // Tolerance for duration comparison (1 minute) to absorb minor seller edits.
+      const DURATION_TOLERANCE_MS = 60_000;
+      const sameDuration = (s: Slot) => {
+        if (lastFailedDurationMs == null) return true;
+        const dur = new Date(s.ends_at).getTime() - new Date(s.starts_at).getTime();
+        return Math.abs(dur - lastFailedDurationMs) <= DURATION_TOLERANCE_MS;
+      };
+      // Seller availability window: slot must start at/after now (loadSlots already
+      // filters this) and its end must be in the future too.
+      const withinSellerWindow = (s: Slot) => new Date(s.ends_at).getTime() > Date.now();
+
+      // Prefer exact id match, then exact start+end match, then start+duration.
       const matchById = lastFailedSlotId
-        ? fresh.find((s) => s.id === lastFailedSlotId && !s.is_booked)
+        ? fresh.find(
+            (s) =>
+              s.id === lastFailedSlotId &&
+              !s.is_booked &&
+              sameDuration(s) &&
+              withinSellerWindow(s),
+          )
         : null;
-      const matchByTime = !matchById && lastFailedStartsAt
-        ? fresh.find((s) => s.starts_at === lastFailedStartsAt && !s.is_booked)
+      const matchByStartEnd = !matchById && lastFailedStartsAt && lastFailedEndsAt
+        ? fresh.find(
+            (s) =>
+              s.starts_at === lastFailedStartsAt &&
+              s.ends_at === lastFailedEndsAt &&
+              !s.is_booked &&
+              withinSellerWindow(s),
+          )
         : null;
-      const match = matchById ?? matchByTime;
+      const matchByStartDuration = !matchById && !matchByStartEnd && lastFailedStartsAt
+        ? fresh.find(
+            (s) =>
+              s.starts_at === lastFailedStartsAt &&
+              !s.is_booked &&
+              sameDuration(s) &&
+              withinSellerWindow(s),
+          )
+        : null;
+      const match = matchById ?? matchByStartEnd ?? matchByStartDuration;
 
       if (match) {
         setSelectedSlotId(match.id);
@@ -200,7 +233,7 @@ const ServiceDetail = () => {
         ? "Pick a slot and try booking again."
         : "No open slots right now — try again shortly.",
     });
-  }, [loadSlots, lastFailedSlotId, lastFailedStartsAt]);
+  }, [loadSlots, lastFailedSlotId, lastFailedStartsAt, lastFailedEndsAt, lastFailedDurationMs]);
 
   // Load + realtime subscribe to availability slots
   useEffect(() => {
