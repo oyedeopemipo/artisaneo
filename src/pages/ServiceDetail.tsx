@@ -346,9 +346,14 @@ const ServiceDetail = () => {
       const isInvalidSlot = code === "22023" || msg.includes("Invalid slot");
 
       if (isTaken || isInvalidSlot) {
-        // Remember what the buyer wanted so Refresh can auto-retry later.
+        // Remember what the buyer wanted so Refresh can auto-retry later,
+        // including duration so we can re-match within the seller's window.
         setLastFailedSlotId(slotToBook.id);
         setLastFailedStartsAt(slotToBook.starts_at);
+        setLastFailedEndsAt(slotToBook.ends_at);
+        setLastFailedDurationMs(
+          new Date(slotToBook.ends_at).getTime() - new Date(slotToBook.starts_at).getTime(),
+        );
         await promptPickAnotherSlot(
           isTaken ? "That slot was just taken" : "That slot is no longer available",
         );
