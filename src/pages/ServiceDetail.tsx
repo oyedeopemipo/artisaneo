@@ -371,6 +371,8 @@ const ServiceDetail = () => {
     setSelectedSlotId(null);
     setLastFailedSlotId(null);
     setLastFailedStartsAt(null);
+    setLastFailedEndsAt(null);
+    setLastFailedDurationMs(null);
   };
 
   // Expose latest handlers to refs so handleManualRefresh can call them
