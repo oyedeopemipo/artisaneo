@@ -119,6 +119,60 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_applications: {
+        Row: {
+          bio: string | null
+          country: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          payout_method: string
+          product_category: string
+          sample_photo_url: string | null
+          shop_description: string
+          shop_name: string
+          status: string
+          terms_agreed: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          country: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          payout_method: string
+          product_category: string
+          sample_photo_url?: string | null
+          shop_description: string
+          shop_name: string
+          status?: string
+          terms_agreed?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          country?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          payout_method?: string
+          product_category?: string
+          sample_photo_url?: string | null
+          shop_description?: string
+          shop_name?: string
+          status?: string
+          terms_agreed?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       service_slots: {
         Row: {
           created_at: string
