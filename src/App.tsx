@@ -9,6 +9,9 @@ import ServiceDetail from "./pages/ServiceDetail.tsx";
 import Auth from "./pages/Auth.tsx";
 import SellerProfile from "./pages/SellerProfile.tsx";
 import PublicSellerProfile from "./pages/PublicSellerProfile.tsx";
+import BecomeASeller from "./pages/BecomeASeller.tsx";
+import SellApply from "./pages/SellApply.tsx";
+import SellSuccess from "./pages/SellSuccess.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,10 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/seller/profile" element={<SellerProfile />} />
           <Route path="/seller/:id" element={<PublicSellerProfile />} />
+          <Route path="/become-a-seller" element={<BecomeASeller />} />
+          <Route path="/sell" element={<BecomeASeller />} />
+          <Route path="/sell/apply" element={<SellApply />} />
+          <Route path="/sell/success" element={<SellSuccess />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

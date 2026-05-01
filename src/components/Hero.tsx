@@ -22,7 +22,7 @@ export const Hero = () => (
             <Link to="/browse">Browse artisans <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </Button>
           <Button variant="glass" size="lg" asChild>
-            <Link to="/auth?mode=signup">Become a seller</Link>
+            <Link to="/become-a-seller">Become a seller</Link>
           </Button>
         </div>
         <div className="mt-10 flex items-center gap-6 text-sm text-primary-foreground/70">
