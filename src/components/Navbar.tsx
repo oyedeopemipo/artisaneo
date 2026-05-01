@@ -73,9 +73,13 @@ export const Navbar = () => {
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              {isSeller && (
+              {isSeller ? (
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/seller/profile">Seller profile</Link>
+                </Button>
+              ) : (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/become-a-seller">Sell on Artisaneo</Link>
                 </Button>
               )}
               <Button variant="ghost" size="sm" onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}>
@@ -84,6 +88,9 @@ export const Navbar = () => {
             </>
           ) : (
             <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/become-a-seller">Sell</Link>
+              </Button>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/auth">Sign in</Link>
               </Button>

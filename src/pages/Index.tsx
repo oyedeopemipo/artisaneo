@@ -78,7 +78,7 @@ const Index = () => {
               Join hundreds of UK creatives growing their business on Artisaneo. List your services in minutes.
             </p>
             <Button variant="hero" size="lg" asChild className="mt-8">
-              <Link to="/auth?mode=signup">Start selling today</Link>
+              <Link to="/become-a-seller">Start selling today</Link>
             </Button>
           </div>
         </section>
