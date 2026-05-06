@@ -131,6 +131,11 @@ const Auth = () => {
             <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
               {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
             </Button>
+            {mode === "signin" && (
+              <p className="text-center text-sm">
+                <Link to="/forgot-password" className="text-primary hover:underline">Forgot your password?</Link>
+              </p>
+            )}
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
