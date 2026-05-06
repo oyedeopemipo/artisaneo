@@ -173,6 +173,60 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_profiles: {
+        Row: {
+          availability_days: string[]
+          availability_end: string | null
+          availability_start: string | null
+          bio: string | null
+          created_at: string
+          full_name: string
+          id: string
+          location: string
+          photo_url: string | null
+          service_category: string
+          shop_description: string
+          shop_name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability_days?: string[]
+          availability_end?: string | null
+          availability_start?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          location: string
+          photo_url?: string | null
+          service_category: string
+          shop_description: string
+          shop_name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability_days?: string[]
+          availability_end?: string | null
+          availability_start?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          location?: string
+          photo_url?: string | null
+          service_category?: string
+          shop_description?: string
+          shop_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       service_slots: {
         Row: {
           created_at: string
