@@ -12,7 +12,10 @@ import PublicSellerProfile from "./pages/PublicSellerProfile.tsx";
 import BecomeASeller from "./pages/BecomeASeller.tsx";
 import SellApply from "./pages/SellApply.tsx";
 import SellSuccess from "./pages/SellSuccess.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -27,12 +30,14 @@ const App = () => (
           <Route path="/browse" element={<Browse />} />
           <Route path="/service/:id" element={<ServiceDetail />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/seller/profile" element={<SellerProfile />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/seller/profile" element={<ProtectedRoute><SellerProfile /></ProtectedRoute>} />
           <Route path="/seller/:id" element={<PublicSellerProfile />} />
           <Route path="/become-a-seller" element={<BecomeASeller />} />
           <Route path="/sell" element={<BecomeASeller />} />
-          <Route path="/sell/apply" element={<SellApply />} />
-          <Route path="/sell/success" element={<SellSuccess />} />
+          <Route path="/sell/apply" element={<ProtectedRoute><SellApply /></ProtectedRoute>} />
+          <Route path="/sell/success" element={<ProtectedRoute><SellSuccess /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

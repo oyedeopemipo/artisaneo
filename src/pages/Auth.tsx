@@ -25,13 +25,15 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"buyer" | "seller" | "both">("buyer");
 
+  const redirectTo = params.get("redirect") || "/browse";
+
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate("/browse");
+      if (session) navigate(redirectTo, { replace: true });
     });
-    supabase.auth.getSession().then(({ data }) => { if (data.session) navigate("/browse"); });
+    supabase.auth.getSession().then(({ data }) => { if (data.session) navigate(redirectTo, { replace: true }); });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,6 +131,11 @@ const Auth = () => {
             <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
               {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
             </Button>
+            {mode === "signin" && (
+              <p className="text-center text-sm">
+                <Link to="/forgot-password" className="text-primary hover:underline">Forgot your password?</Link>
+              </p>
+            )}
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
