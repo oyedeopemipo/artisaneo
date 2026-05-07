@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import type { Service } from "@/components/ServiceCard";
+import { BookingPanel } from "@/components/BookingPanel";
 
 type SellerProfile = {
   id: string;
@@ -16,6 +17,16 @@ type SellerProfile = {
   avatar_url: string | null;
   bio: string | null;
   city: string | null;
+};
+
+type SellerProfileExtra = {
+  user_id: string;
+  full_name: string;
+  shop_name: string;
+  service_category: string;
+  availability_days: string[];
+  availability_start: string | null;
+  availability_end: string | null;
 };
 
 const formatGBP = (pence: number) =>
