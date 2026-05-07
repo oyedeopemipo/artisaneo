@@ -250,6 +250,30 @@ const PublicSellerProfile = () => {
         </section>
       </main>
       <Footer />
+      {sellerExtra && id && (
+        <BookingPanel
+          open={bookingOpen}
+          onOpenChange={setBookingOpen}
+          seller={sellerExtra}
+          defaultPricePence={services[0]?.price_pence ?? 5000}
+        />
+      )}
+      {!sellerExtra && id && seller && (
+        <BookingPanel
+          open={bookingOpen}
+          onOpenChange={setBookingOpen}
+          seller={{
+            user_id: id,
+            full_name: seller.display_name ?? "Artisan",
+            shop_name: seller.display_name ?? "Artisan",
+            service_category: "",
+            availability_days: [],
+            availability_start: null,
+            availability_end: null,
+          }}
+          defaultPricePence={services[0]?.price_pence ?? 5000}
+        />
+      )}
     </div>
   );
 };
