@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import type { Service } from "@/components/ServiceCard";
+import { BookingPanel } from "@/components/BookingPanel";
 
 type SellerProfile = {
   id: string;
@@ -18,6 +19,16 @@ type SellerProfile = {
   city: string | null;
 };
 
+type SellerProfileExtra = {
+  user_id: string;
+  full_name: string;
+  shop_name: string;
+  service_category: string;
+  availability_days: string[];
+  availability_start: string | null;
+  availability_end: string | null;
+};
+
 const formatGBP = (pence: number) =>
   new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(pence / 100);
 
@@ -25,7 +36,9 @@ const PublicSellerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [seller, setSeller] = useState<SellerProfile | null>(null);
+  const [sellerExtra, setSellerExtra] = useState<SellerProfileExtra | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -33,19 +46,25 @@ const PublicSellerProfile = () => {
 
     const load = async () => {
       setLoading(true);
-      const [{ data: profile }, { data: sellerServices }] = await Promise.all([
+      const [{ data: profile }, { data: sellerServices }, { data: extra }] = await Promise.all([
         supabase.from("profiles").select("id,display_name,avatar_url,bio,city").eq("id", id).maybeSingle(),
         supabase
           .from("services")
           .select("id,title,description,price_pence,city,rating,review_count,image_url,seller_id")
           .eq("seller_id", id)
           .order("rating", { ascending: false }),
+        supabase
+          .from("seller_profiles")
+          .select("user_id,full_name,shop_name,service_category,availability_days,availability_start,availability_end")
+          .eq("user_id", id)
+          .maybeSingle(),
       ]);
 
       if (!active) return;
 
       setSeller((profile as SellerProfile) ?? null);
       setServices((sellerServices as Service[]) ?? []);
+      setSellerExtra((extra as SellerProfileExtra) ?? null);
       setLoading(false);
     };
 
@@ -149,6 +168,11 @@ const PublicSellerProfile = () => {
                     <p className="mt-5 max-w-3xl whitespace-pre-line leading-relaxed text-muted-foreground">
                       {seller?.bio ?? "This artisan has started listing services on Artisaneo. Browse the portfolio below to explore their work."}
                     </p>
+                    <div className="mt-6">
+                      <Button size="lg" variant="hero" onClick={() => setBookingOpen(true)}>
+                        <CalendarCheck className="mr-2 h-5 w-5" /> Book Now
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -226,6 +250,30 @@ const PublicSellerProfile = () => {
         </section>
       </main>
       <Footer />
+      {sellerExtra && id && (
+        <BookingPanel
+          open={bookingOpen}
+          onOpenChange={setBookingOpen}
+          seller={sellerExtra}
+          defaultPricePence={services[0]?.price_pence ?? 5000}
+        />
+      )}
+      {!sellerExtra && id && seller && (
+        <BookingPanel
+          open={bookingOpen}
+          onOpenChange={setBookingOpen}
+          seller={{
+            user_id: id,
+            full_name: seller.display_name ?? "Artisan",
+            shop_name: seller.display_name ?? "Artisan",
+            service_category: "",
+            availability_days: [],
+            availability_start: null,
+            availability_end: null,
+          }}
+          defaultPricePence={services[0]?.price_pence ?? 5000}
+        />
+      )}
     </div>
   );
 };

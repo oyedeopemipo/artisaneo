@@ -16,38 +16,50 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          booking_date: string | null
+          booking_time: string | null
           buyer_id: string
           created_at: string
           id: string
           notes: string | null
           price_pence: number
+          reference_number: string | null
           seller_id: string
-          service_id: string
-          slot_id: string
+          service_id: string | null
+          service_type: string | null
+          slot_id: string | null
           status: Database["public"]["Enums"]["booking_status"]
           updated_at: string
         }
         Insert: {
+          booking_date?: string | null
+          booking_time?: string | null
           buyer_id: string
           created_at?: string
           id?: string
           notes?: string | null
           price_pence: number
+          reference_number?: string | null
           seller_id: string
-          service_id: string
-          slot_id: string
+          service_id?: string | null
+          service_type?: string | null
+          slot_id?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
         }
         Update: {
+          booking_date?: string | null
+          booking_time?: string | null
           buyer_id?: string
           created_at?: string
           id?: string
           notes?: string | null
           price_pence?: number
+          reference_number?: string | null
           seller_id?: string
-          service_id?: string
-          slot_id?: string
+          service_id?: string | null
+          service_type?: string | null
+          slot_id?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
         }
@@ -86,6 +98,42 @@ export type Database = {
           id?: string
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
