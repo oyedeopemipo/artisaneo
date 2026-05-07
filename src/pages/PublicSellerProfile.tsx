@@ -168,6 +168,11 @@ const PublicSellerProfile = () => {
                     <p className="mt-5 max-w-3xl whitespace-pre-line leading-relaxed text-muted-foreground">
                       {seller?.bio ?? "This artisan has started listing services on Artisaneo. Browse the portfolio below to explore their work."}
                     </p>
+                    <div className="mt-6">
+                      <Button size="lg" variant="hero" onClick={() => setBookingOpen(true)}>
+                        <CalendarCheck className="mr-2 h-5 w-5" /> Book Now
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
