@@ -36,7 +36,9 @@ const PublicSellerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [seller, setSeller] = useState<SellerProfile | null>(null);
+  const [sellerExtra, setSellerExtra] = useState<SellerProfileExtra | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -44,19 +46,25 @@ const PublicSellerProfile = () => {
 
     const load = async () => {
       setLoading(true);
-      const [{ data: profile }, { data: sellerServices }] = await Promise.all([
+      const [{ data: profile }, { data: sellerServices }, { data: extra }] = await Promise.all([
         supabase.from("profiles").select("id,display_name,avatar_url,bio,city").eq("id", id).maybeSingle(),
         supabase
           .from("services")
           .select("id,title,description,price_pence,city,rating,review_count,image_url,seller_id")
           .eq("seller_id", id)
           .order("rating", { ascending: false }),
+        supabase
+          .from("seller_profiles")
+          .select("user_id,full_name,shop_name,service_category,availability_days,availability_start,availability_end")
+          .eq("user_id", id)
+          .maybeSingle(),
       ]);
 
       if (!active) return;
 
       setSeller((profile as SellerProfile) ?? null);
       setServices((sellerServices as Service[]) ?? []);
+      setSellerExtra((extra as SellerProfileExtra) ?? null);
       setLoading(false);
     };
 
