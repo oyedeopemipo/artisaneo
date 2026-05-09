@@ -273,6 +273,28 @@ const SellerProfile = () => {
 
             <aside className="space-y-6">
               <div className="rounded-2xl border border-border bg-card p-6 shadow-card-soft">
+                <div className="flex items-start gap-3">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  <div className="flex-1">
+                    <h3 className="font-display text-lg font-semibold">Payouts</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Connect Stripe to accept bookings. A 10% platform fee is deducted from each payout.
+                    </p>
+                  </div>
+                  {stripeStatus.complete && <CheckCircle2 className="h-5 w-5 text-primary" />}
+                </div>
+                <div className="mt-4">
+                  {stripeStatus.complete ? (
+                    <Badge variant="secondary">Stripe connected · Ready to receive payouts</Badge>
+                  ) : (
+                    <Button onClick={handleConnectStripe} disabled={stripeLoading} className="w-full">
+                      {stripeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {stripeStatus.has_account ? "Continue Stripe onboarding" : "Connect Stripe payouts"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-card-soft">
                 <div className="flex items-start gap-4">
                   <Avatar className="h-20 w-20 border border-border">
                     <AvatarImage src={form.avatar_url || undefined} alt={form.display_name || "Seller avatar"} />
