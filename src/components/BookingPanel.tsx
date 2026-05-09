@@ -153,105 +153,102 @@ export const BookingPanel = ({ open, onOpenChange, seller, defaultPricePence = 5
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
-        {(
-          <></>
-        ) || (
-          <>
-            <SheetHeader>
-              <SheetTitle>Book {seller.shop_name || seller.full_name}</SheetTitle>
-              <SheetDescription>
-                {allowedDayIndexes.size > 0
-                  ? `Available ${seller.availability_days.join(", ")}`
-                  : "Pick a date, time and add details for your booking."}
-              </SheetDescription>
-            </SheetHeader>
+        <SheetHeader>
+          <SheetTitle>Book {seller.shop_name || seller.full_name}</SheetTitle>
+          <SheetDescription>
+            {allowedDayIndexes.size > 0
+              ? `Available ${seller.availability_days.join(", ")}`
+              : "Pick a date, time and add details for your booking."}
+          </SheetDescription>
+        </SheetHeader>
 
-            <div className="mt-6 space-y-5">
-              <div className="space-y-2">
-                <Label>Service type</Label>
-                <Input
-                  value={serviceType}
-                  onChange={(e) => setServiceType(e.target.value)}
-                  placeholder="e.g. Bridal makeup"
-                  maxLength={100}
+        <div className="mt-6 space-y-5">
+          <div className="space-y-2">
+            <Label>Service type</Label>
+            <Input
+              value={serviceType}
+              onChange={(e) => setServiceType(e.target.value)}
+              placeholder="e.g. Bridal makeup"
+              maxLength={100}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  disabled={isDayDisabled}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
                 />
-              </div>
+              </PopoverContent>
+            </Popover>
+          </div>
 
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      disabled={isDayDisabled}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+          <div className="space-y-2">
+            <Label>Time</Label>
+            <Select value={time} onValueChange={setTime}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a time" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeSlots.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="space-y-2">
-                <Label>Time</Label>
-                <Select value={time} onValueChange={setTime}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlots.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label>Notes (optional)</Label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Anything the artisan should know"
+              maxLength={1000}
+              rows={3}
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label>Notes (optional)</Label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Anything the artisan should know"
-                  maxLength={1000}
-                  rows={3}
-                />
-              </div>
+          <div className="space-y-2">
+            <Label>Price (£)</Label>
+            <Input
+              type="number"
+              min={0}
+              step="1"
+              value={(pricePence / 100).toString()}
+              onChange={(e) => setPricePence(Math.max(0, Math.round(Number(e.target.value) * 100)))}
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label>Price (£)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  step="1"
-                  value={(pricePence / 100).toString()}
-                  onChange={(e) => setPricePence(Math.max(0, Math.round(Number(e.target.value) * 100)))}
-                />
-              </div>
-
-              <div className="rounded-lg border border-border bg-muted/30 p-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Total</span>
-                  <span className="font-display text-xl font-semibold">{formatGBP(pricePence)}</span>
-                </div>
-              </div>
-
-              <Button onClick={handleSubmit} disabled={submitting || !authChecked} className="w-full" size="lg">
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Confirm booking
-              </Button>
+          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Total</span>
+              <span className="font-display text-xl font-semibold">{formatGBP(pricePence)}</span>
             </div>
-          </>
-        )}
+            <p className="text-xs text-muted-foreground">
+              A 10% platform fee is deducted from the seller's payout.
+            </p>
+          </div>
+
+          <Button onClick={handleSubmit} disabled={submitting || !authChecked} className="w-full" size="lg">
+            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Continue to payment
+          </Button>
+        </div>
       </SheetContent>
     </Sheet>
   );
