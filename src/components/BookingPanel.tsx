@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, CheckCircle2, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -76,7 +76,6 @@ export const BookingPanel = ({ open, onOpenChange, seller, defaultPricePence = 5
   const [notes, setNotes] = useState("");
   const [pricePence, setPricePence] = useState(defaultPricePence);
   const [submitting, setSubmitting] = useState(false);
-  const [confirmation, setConfirmation] = useState<{ ref: string } | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -87,7 +86,6 @@ export const BookingPanel = ({ open, onOpenChange, seller, defaultPricePence = 5
 
   useEffect(() => {
     if (!open) {
-      setConfirmation(null);
       setDate(undefined);
       setTime("");
       setNotes("");
