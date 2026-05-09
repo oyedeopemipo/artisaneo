@@ -129,48 +129,36 @@ export const BookingPanel = ({ open, onOpenChange, seller, defaultPricePence = 5
     }
 
     setSubmitting(true);
-    const reference = generateRef();
-    const { error } = await supabase.from("bookings").insert({
-      buyer_id: userId,
-      seller_id: seller.user_id,
-      service_type: parsed.data.serviceType,
-      booking_date: format(parsed.data.date, "yyyy-MM-dd"),
-      booking_time: parsed.data.time,
-      notes: parsed.data.notes || null,
-      price_pence: parsed.data.pricePence,
-      status: "pending",
-      reference_number: reference,
+    const { data, error } = await supabase.functions.invoke("create-booking-checkout", {
+      body: {
+        seller_id: seller.user_id,
+        service_type: parsed.data.serviceType,
+        booking_date: format(parsed.data.date, "yyyy-MM-dd"),
+        booking_time: parsed.data.time,
+        notes: parsed.data.notes || null,
+        price_pence: parsed.data.pricePence,
+      },
     });
     setSubmitting(false);
 
-    if (error) {
-      toast.error(error.message);
+    if (error || !data?.url) {
+      const msg = (data as { error?: string } | null)?.error || error?.message || "Could not start checkout";
+      toast.error(typeof msg === "string" ? msg : "Could not start checkout");
       return;
     }
 
-    setConfirmation({ ref: reference });
-    toast.success("Booking submitted");
+    window.location.href = data.url as string;
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
-        {confirmation ? (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <CheckCircle2 className="h-14 w-14 text-primary" />
-            <h2 className="mt-4 font-display text-2xl font-semibold">Booking confirmed</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              We've notified {seller.full_name}. You'll get an update once it's confirmed.
-            </p>
-            <div className="mt-6 w-full rounded-lg border border-border bg-muted/40 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Reference</p>
-              <p className="mt-1 font-mono text-lg font-semibold">{confirmation.ref}</p>
-            </div>
-            <Button className="mt-6 w-full" onClick={() => onOpenChange(false)}>
-              Done
-            </Button>
-          </div>
-        ) : (
+        {(
+          <></>
+        )}
+        {(
+          <></>
+        ) || (
           <>
             <SheetHeader>
               <SheetTitle>Book {seller.shop_name || seller.full_name}</SheetTitle>
