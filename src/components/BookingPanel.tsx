@@ -155,9 +155,6 @@ export const BookingPanel = ({ open, onOpenChange, seller, defaultPricePence = 5
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
         {(
           <></>
-        )}
-        {(
-          <></>
         ) || (
           <>
             <SheetHeader>
