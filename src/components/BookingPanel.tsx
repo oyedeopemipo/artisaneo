@@ -47,9 +47,6 @@ const bookingSchema = z.object({
 const formatGBP = (pence: number) =>
   new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(pence / 100);
 
-const generateRef = () =>
-  `ART-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-
 const buildTimeSlots = (start: string | null, end: string | null) => {
   const s = start ?? "09:00";
   const e = end ?? "17:00";
