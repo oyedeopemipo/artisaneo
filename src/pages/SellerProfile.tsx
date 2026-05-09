@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Globe, MapPin, Megaphone, Sparkles, Store } from "lucide-react";
+import { Globe, MapPin, Megaphone, Sparkles, Store, CreditCard, CheckCircle2, Loader2 } from "lucide-react";
 
 const profileSchema = z.object({
   display_name: z.string().trim().min(2, "Display name must be at least 2 characters").max(100, "Display name must be 100 characters or fewer"),
@@ -37,6 +37,31 @@ const SellerProfile = () => {
   const [isSeller, setIsSeller] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [form, setForm] = useState<ProfileForm>(emptyForm);
+  const [stripeStatus, setStripeStatus] = useState<{ has_account: boolean; complete: boolean }>({ has_account: false, complete: false });
+  const [stripeLoading, setStripeLoading] = useState(false);
+
+  const loadStripeStatus = async (uid: string) => {
+    const { data } = await supabase
+      .from("seller_profiles")
+      .select("stripe_account_id, stripe_onboarding_complete")
+      .eq("user_id", uid)
+      .maybeSingle();
+    setStripeStatus({
+      has_account: !!data?.stripe_account_id,
+      complete: !!data?.stripe_onboarding_complete,
+    });
+  };
+
+  const handleConnectStripe = async () => {
+    setStripeLoading(true);
+    const { data, error } = await supabase.functions.invoke("stripe-connect-onboard", { body: {} });
+    setStripeLoading(false);
+    if (error || !data?.url) {
+      toast.error((data as { error?: string } | null)?.error || error?.message || "Could not start onboarding");
+      return;
+    }
+    window.location.href = data.url as string;
+  };
 
   useEffect(() => {
     let active = true;
@@ -65,6 +90,7 @@ const SellerProfile = () => {
         bio: profile?.bio ?? "",
         avatar_url: profile?.avatar_url ?? "",
       });
+      await loadStripeStatus(user.id);
       setLoading(false);
     };
 
