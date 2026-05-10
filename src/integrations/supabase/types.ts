@@ -113,6 +113,27 @@ export type Database = {
         }
         Relationships: []
       }
+      favorites: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          seller_id: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          seller_id: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          seller_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           booking_id: string | null
@@ -176,6 +197,36 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          booking_id: string
+          buyer_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          seller_id: string
+        }
+        Insert: {
+          booking_id: string
+          buyer_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          seller_id: string
+        }
+        Update: {
+          booking_id?: string
+          buyer_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          seller_id?: string
         }
         Relationships: []
       }
