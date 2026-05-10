@@ -40,6 +40,47 @@ const PublicSellerProfile = () => {
   const [sellerExtra, setSellerExtra] = useState<SellerProfileExtra | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [favoriteId, setFavoriteId] = useState<string | null>(null);
+  const [favLoading, setFavLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setCurrentUserId(data.session?.user.id ?? null));
+  }, []);
+
+  useEffect(() => {
+    if (!id || !currentUserId) { setFavoriteId(null); return; }
+    supabase
+      .from("favorites")
+      .select("id")
+      .eq("buyer_id", currentUserId)
+      .eq("seller_id", id)
+      .maybeSingle()
+      .then(({ data }) => setFavoriteId(data?.id ?? null));
+  }, [id, currentUserId]);
+
+  const toggleFavorite = async () => {
+    if (!id) return;
+    if (!currentUserId) { window.location.href = `/auth?redirect=/seller/${id}`; return; }
+    setFavLoading(true);
+    if (favoriteId) {
+      const { error } = await supabase.from("favorites").delete().eq("id", favoriteId);
+      setFavLoading(false);
+      if (error) { toast.error(error.message); return; }
+      setFavoriteId(null);
+      toast.success("Removed from saved");
+    } else {
+      const { data, error } = await supabase
+        .from("favorites")
+        .insert({ buyer_id: currentUserId, seller_id: id })
+        .select("id")
+        .single();
+      setFavLoading(false);
+      if (error) { toast.error(error.message); return; }
+      setFavoriteId(data.id);
+      toast.success("Saved to your dashboard");
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
