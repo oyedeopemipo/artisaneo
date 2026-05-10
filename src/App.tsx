@@ -16,6 +16,7 @@ import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import BookingConfirmation from "./pages/BookingConfirmation.tsx";
 import BookingCancelled from "./pages/BookingCancelled.tsx";
+import BuyerDashboard from "./pages/BuyerDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/sell/success" element={<ProtectedRoute><SellSuccess /></ProtectedRoute>} />
           <Route path="/booking/confirmation" element={<BookingConfirmation />} />
           <Route path="/booking/cancelled" element={<BookingCancelled />} />
+          <Route path="/dashboard/buyer" element={<ProtectedRoute><BuyerDashboard /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
