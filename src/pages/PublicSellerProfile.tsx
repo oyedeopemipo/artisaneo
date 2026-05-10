@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Store, CalendarCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Store, CalendarCheck, Heart } from "lucide-react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,47 @@ const PublicSellerProfile = () => {
   const [sellerExtra, setSellerExtra] = useState<SellerProfileExtra | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [favoriteId, setFavoriteId] = useState<string | null>(null);
+  const [favLoading, setFavLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setCurrentUserId(data.session?.user.id ?? null));
+  }, []);
+
+  useEffect(() => {
+    if (!id || !currentUserId) { setFavoriteId(null); return; }
+    supabase
+      .from("favorites")
+      .select("id")
+      .eq("buyer_id", currentUserId)
+      .eq("seller_id", id)
+      .maybeSingle()
+      .then(({ data }) => setFavoriteId(data?.id ?? null));
+  }, [id, currentUserId]);
+
+  const toggleFavorite = async () => {
+    if (!id) return;
+    if (!currentUserId) { window.location.href = `/auth?redirect=/seller/${id}`; return; }
+    setFavLoading(true);
+    if (favoriteId) {
+      const { error } = await supabase.from("favorites").delete().eq("id", favoriteId);
+      setFavLoading(false);
+      if (error) { toast.error(error.message); return; }
+      setFavoriteId(null);
+      toast.success("Removed from saved");
+    } else {
+      const { data, error } = await supabase
+        .from("favorites")
+        .insert({ buyer_id: currentUserId, seller_id: id })
+        .select("id")
+        .single();
+      setFavLoading(false);
+      if (error) { toast.error(error.message); return; }
+      setFavoriteId(data.id);
+      toast.success("Saved to your dashboard");
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -168,9 +210,13 @@ const PublicSellerProfile = () => {
                     <p className="mt-5 max-w-3xl whitespace-pre-line leading-relaxed text-muted-foreground">
                       {seller?.bio ?? "This artisan has started listing services on Artisaneo. Browse the portfolio below to explore their work."}
                     </p>
-                    <div className="mt-6">
+                    <div className="mt-6 flex flex-wrap gap-3">
                       <Button size="lg" variant="hero" onClick={() => setBookingOpen(true)}>
                         <CalendarCheck className="mr-2 h-5 w-5" /> Book Now
+                      </Button>
+                      <Button size="lg" variant="outline" onClick={toggleFavorite} disabled={favLoading}>
+                        <Heart className={`mr-2 h-5 w-5 ${favoriteId ? "fill-primary text-primary" : ""}`} />
+                        {favoriteId ? "Saved" : "Save"}
                       </Button>
                     </div>
                   </div>
