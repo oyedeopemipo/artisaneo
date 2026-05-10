@@ -194,17 +194,16 @@ const BuyerDashboard = () => {
     const parsed = profileSchema.safeParse({ display_name: displayName, email });
     if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Invalid"); return; }
     setSavingProfile(true);
-    const updates: Promise<unknown>[] = [
-      supabase.from("profiles").upsert({ id: userId, display_name: parsed.data.display_name, avatar_url: avatarUrl }),
-    ];
+    const { error: profileErr } = await supabase
+      .from("profiles")
+      .upsert({ id: userId, display_name: parsed.data.display_name, avatar_url: avatarUrl });
+    if (profileErr) { setSavingProfile(false); toast.error(profileErr.message); return; }
     const { data: auth } = await supabase.auth.getUser();
     if (auth.user?.email !== parsed.data.email) {
-      updates.push(supabase.auth.updateUser({ email: parsed.data.email }));
+      const { error: emailErr } = await supabase.auth.updateUser({ email: parsed.data.email });
+      if (emailErr) { setSavingProfile(false); toast.error(emailErr.message); return; }
     }
-    const results = await Promise.all(updates);
     setSavingProfile(false);
-    const errs = results.map((r) => (r as { error?: { message?: string } }).error).filter(Boolean);
-    if (errs.length > 0) { toast.error(errs[0]!.message ?? "Could not save"); return; }
     toast.success("Profile updated");
   };
 
