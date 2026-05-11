@@ -17,6 +17,7 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import BookingConfirmation from "./pages/BookingConfirmation.tsx";
 import BookingCancelled from "./pages/BookingCancelled.tsx";
 import BuyerDashboard from "./pages/BuyerDashboard.tsx";
+import SellerDashboard from "./pages/SellerDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
