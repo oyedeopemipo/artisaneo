@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Store, CalendarCheck, Heart } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, MapPin, MessageSquare, Star, Store, CalendarCheck, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import type { Service } from "@/components/ServiceCard";
 import { BookingPanel } from "@/components/BookingPanel";
+import { getOrCreateConversation } from "@/lib/messaging";
 
 type SellerProfile = {
   id: string;
@@ -35,7 +36,9 @@ const formatGBP = (pence: number) =>
 
 const PublicSellerProfile = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [messageLoading, setMessageLoading] = useState(false);
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [sellerExtra, setSellerExtra] = useState<SellerProfileExtra | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -80,6 +83,17 @@ const PublicSellerProfile = () => {
       setFavoriteId(data.id);
       toast.success("Saved to your dashboard");
     }
+  };
+
+  const handleMessage = async () => {
+    if (!id) return;
+    if (!currentUserId) { window.location.href = `/auth?redirect=/seller/${id}`; return; }
+    if (currentUserId === id) { toast.error("You can't message yourself"); return; }
+    setMessageLoading(true);
+    const convId = await getOrCreateConversation({ buyerId: currentUserId, sellerId: id });
+    setMessageLoading(false);
+    if (!convId) { toast.error("Could not start conversation"); return; }
+    navigate(`/messages?c=${convId}`);
   };
 
   useEffect(() => {
@@ -213,6 +227,9 @@ const PublicSellerProfile = () => {
                     <div className="mt-6 flex flex-wrap gap-3">
                       <Button size="lg" variant="hero" onClick={() => setBookingOpen(true)}>
                         <CalendarCheck className="mr-2 h-5 w-5" /> Book Now
+                      </Button>
+                      <Button size="lg" variant="outline" onClick={handleMessage} disabled={messageLoading}>
+                        <MessageSquare className="mr-2 h-5 w-5" /> Message
                       </Button>
                       <Button size="lg" variant="outline" onClick={toggleFavorite} disabled={favLoading}>
                         <Heart className={`mr-2 h-5 w-5 ${favoriteId ? "fill-primary text-primary" : ""}`} />
