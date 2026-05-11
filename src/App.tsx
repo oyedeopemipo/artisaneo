@@ -45,6 +45,7 @@ const App = () => (
           <Route path="/booking/confirmation" element={<BookingConfirmation />} />
           <Route path="/booking/cancelled" element={<BookingCancelled />} />
           <Route path="/dashboard/buyer" element={<ProtectedRoute><BuyerDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/seller" element={<ProtectedRoute><SellerDashboard /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
