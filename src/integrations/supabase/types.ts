@@ -113,6 +113,41 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          booking_id: string | null
+          buyer_id: string
+          created_at: string
+          id: string
+          last_message_at: string
+          seller_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          buyer_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          seller_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           buyer_id: string
@@ -133,6 +168,41 @@ export type Database = {
           seller_id?: string
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read: boolean
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
