@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import type { Service } from "@/components/ServiceCard";
 import { BookingPanel } from "@/components/BookingPanel";
+import { getOrCreateConversation } from "@/lib/messaging";
 
 type SellerProfile = {
   id: string;
