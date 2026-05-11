@@ -85,6 +85,17 @@ const PublicSellerProfile = () => {
     }
   };
 
+  const handleMessage = async () => {
+    if (!id) return;
+    if (!currentUserId) { window.location.href = `/auth?redirect=/seller/${id}`; return; }
+    if (currentUserId === id) { toast.error("You can't message yourself"); return; }
+    setMessageLoading(true);
+    const convId = await getOrCreateConversation({ buyerId: currentUserId, sellerId: id });
+    setMessageLoading(false);
+    if (!convId) { toast.error("Could not start conversation"); return; }
+    navigate(`/messages?c=${convId}`);
+  };
+
   useEffect(() => {
     if (!id) return;
     let active = true;
