@@ -230,6 +230,7 @@ const PublicSellerProfile = () => {
                       </Button>
                       <Button size="lg" variant="outline" onClick={handleMessage} disabled={messageLoading}>
                         <MessageSquare className="mr-2 h-5 w-5" /> Message
+                      </Button>
                       <Button size="lg" variant="outline" onClick={toggleFavorite} disabled={favLoading}>
                         <Heart className={`mr-2 h-5 w-5 ${favoriteId ? "fill-primary text-primary" : ""}`} />
                         {favoriteId ? "Saved" : "Save"}
