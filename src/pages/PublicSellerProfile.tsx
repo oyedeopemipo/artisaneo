@@ -36,7 +36,9 @@ const formatGBP = (pence: number) =>
 
 const PublicSellerProfile = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [messageLoading, setMessageLoading] = useState(false);
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [sellerExtra, setSellerExtra] = useState<SellerProfileExtra | null>(null);
   const [services, setServices] = useState<Service[]>([]);
