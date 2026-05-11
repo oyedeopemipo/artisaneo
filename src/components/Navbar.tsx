@@ -74,9 +74,14 @@ export const Navbar = () => {
           {user ? (
             <>
               {isSeller ? (
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/seller/profile">Seller profile</Link>
-                </Button>
+                <>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/dashboard/seller">Dashboard</Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/seller/profile">Profile</Link>
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button variant="ghost" size="sm" asChild>
