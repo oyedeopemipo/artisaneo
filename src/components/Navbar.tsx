@@ -71,6 +71,19 @@ export const Navbar = () => {
     if (user) void loadUnread(user.id);
   }, [pathname, user, loadUnread]);
 
+  // Ping last_seen_at so unread-message email notifications skip active users
+  useEffect(() => {
+    if (!user) return;
+    const ping = () => {
+      if (document.visibilityState !== "visible") return;
+      void supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
+    };
+    ping();
+    const interval = window.setInterval(ping, 2 * 60 * 1000);
+    document.addEventListener("visibilitychange", ping);
+    return () => { window.clearInterval(interval); document.removeEventListener("visibilitychange", ping); };
+  }, [user]);
+
   const links = [
     { to: "/", label: "Home" },
     { to: "/browse", label: "Browse" },

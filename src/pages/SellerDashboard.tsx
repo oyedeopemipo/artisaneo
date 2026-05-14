@@ -223,6 +223,7 @@ const SellerDashboard = () => {
     const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Booking declined");
+    void supabase.functions.invoke("notify-booking-cancelled", { body: { booking_id: id } });
   };
 
   const saveProfile = async () => {
