@@ -155,6 +155,7 @@ const BuyerDashboard = () => {
     if (error) { toast.error(error.message); return; }
     setBookings((cur) => cur.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b)));
     toast.success("Booking cancelled");
+    void supabase.functions.invoke("notify-booking-cancelled", { body: { booking_id: id } });
   };
 
   const removeFavorite = async (id: string) => {

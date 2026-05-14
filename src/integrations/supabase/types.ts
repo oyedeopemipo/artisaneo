@@ -148,6 +148,30 @@ export type Database = {
           },
         ]
       }
+      email_notifications_sent: {
+        Row: {
+          id: string
+          kind: string
+          recipient_user_id: string | null
+          ref_id: string
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          kind: string
+          recipient_user_id?: string | null
+          ref_id: string
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          recipient_user_id?: string | null
+          ref_id?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           buyer_id: string
@@ -248,6 +272,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          last_seen_at: string | null
           updated_at: string
         }
         Insert: {
@@ -257,6 +282,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          last_seen_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -266,6 +292,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          last_seen_at?: string | null
           updated_at?: string
         }
         Relationships: []
