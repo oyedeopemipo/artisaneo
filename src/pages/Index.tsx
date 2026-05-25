@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
+import { SocialProof } from "@/components/SocialProof";
 import { CategoryGrid } from "@/components/CategoryGrid";
 import { ServiceCard, type Service } from "@/components/ServiceCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ const Index = () => {
       <Navbar />
       <main>
         <Hero />
+        <SocialProof />
         <CategoryGrid categories={categories} />
 
         {/* How it works */}
