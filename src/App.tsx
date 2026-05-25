@@ -21,6 +21,13 @@ import SellerDashboard from "./pages/SellerDashboard.tsx";
 import Messages from "./pages/Messages.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AdminRoute } from "./components/AdminRoute";
+import { AdminLayout } from "./components/AdminLayout";
+import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { SellerApplications } from "./pages/admin/SellerApplications";
+import { AllUsers } from "./pages/admin/AllUsers";
+import { BookingsOverview } from "./pages/admin/BookingsOverview";
+import { Reports } from "./pages/admin/Reports";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +55,13 @@ const App = () => (
           <Route path="/dashboard/buyer" element={<ProtectedRoute><BuyerDashboard /></ProtectedRoute>} />
           <Route path="/dashboard/seller" element={<ProtectedRoute><SellerDashboard /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="applications" element={<SellerApplications />} />
+            <Route path="users" element={<AllUsers />} />
+            <Route path="bookings" element={<BookingsOverview />} />
+            <Route path="reports" element={<Reports />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
