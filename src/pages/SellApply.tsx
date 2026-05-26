@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader as Loader2 } from "lucide-react";
 
 const CATEGORIES = ["Jewelry", "Textiles", "Ceramics", "Art", "Woodwork", "Leather", "Other"];
 const PAYOUT_METHODS = ["Bank Transfer", "PayPal", "Other"];
