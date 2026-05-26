@@ -136,6 +136,54 @@ const PublicSellerProfile = () => {
   const sellerName = seller?.display_name ?? "Artisaneo seller";
   const sellerInitial = sellerName.charAt(0).toUpperCase();
 
+  // Set dynamic Open Graph meta tags for rich social previews
+  useEffect(() => {
+    if (loading) return;
+
+    const title = sellerName;
+    const category = sellerExtra?.service_category ?? "artisan";
+    const description = seller?.bio
+      ?? `${title} — ${category} on Artisaneo. Book trusted ${category} services.`;
+    const image = seller?.avatar_url ?? "";
+    const url = `${window.location.origin}/artisans/${id ?? ""}`;
+
+    const setMeta = (property: string, content: string) => {
+      let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    const setNameMeta = (name: string, content: string) => {
+      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("name", name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    document.title = `${title} — ${category} on Artisaneo`;
+    setMeta("og:title", `${title} — ${category} on Artisaneo`);
+    setMeta("og:description", description);
+    setMeta("og:url", url);
+    setNameMeta("twitter:title", `${title} — ${category} on Artisaneo`);
+    setNameMeta("twitter:description", description);
+
+    if (image) {
+      setMeta("og:image", image);
+      setNameMeta("twitter:image", image);
+    }
+
+    return () => {
+      document.title = "Artisaneo — Book trusted local artisans across the UK";
+    };
+  }, [loading, sellerName, seller, sellerExtra, id]);
+
   const stats = useMemo(() => {
     const reviewTotal = services.reduce((sum, service) => sum + (service.review_count ?? 0), 0);
     const ratedServices = services.filter((service) => typeof service.rating === "number");

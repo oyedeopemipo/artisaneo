@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar as CalendarIcon, CircleCheck as CheckCircle2, Clock, DollarSign, Loader as Loader2, Pencil, Plus, Trash2, X, Wallet, Image as ImageIcon, ArrowRight, Camera, FileText, Package, CalendarDays, MapPin } from "lucide-react";
+import { Calendar as CalendarIcon, CircleCheck as CheckCircle2, Clock, DollarSign, Loader as Loader2, Pencil, Plus, Trash2, X, Wallet, Image as ImageIcon, ArrowRight, Camera, FileText, Package, CalendarDays, MapPin, Share2, Copy, MessageCircle, Instagram } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,6 +88,7 @@ const SellerDashboard = () => {
   const [availEnd, setAvailEnd] = useState<string>("17:00");
   const [savingAvail, setSavingAvail] = useState(false);
   const [hasSellerProfile, setHasSellerProfile] = useState(false);
+  const [serviceCategory, setServiceCategory] = useState("");
 
   // service editor
   const [editing, setEditing] = useState<Service | null>(null);
@@ -147,7 +148,7 @@ const SellerDashboard = () => {
 
       const [{ data: profile }, { data: sp }] = await Promise.all([
         supabase.from("profiles").select("display_name,bio,city,avatar_url").eq("id", user.id).maybeSingle(),
-        supabase.from("seller_profiles").select("availability_days,availability_start,availability_end").eq("user_id", user.id).maybeSingle(),
+        supabase.from("seller_profiles").select("availability_days,availability_start,availability_end,service_category").eq("user_id", user.id).maybeSingle(),
       ]);
       if (!active) return;
       setDisplayName(profile?.display_name ?? "");
@@ -159,6 +160,7 @@ const SellerDashboard = () => {
         setAvailDays(sp.availability_days ?? []);
         setAvailStart((sp.availability_start ?? "09:00:00").slice(0, 5));
         setAvailEnd((sp.availability_end ?? "17:00:00").slice(0, 5));
+        setServiceCategory(sp.service_category ?? "");
       }
 
       await Promise.all([fetchBookings(user.id), fetchServices(user.id)]);
@@ -391,6 +393,73 @@ const SellerDashboard = () => {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Share your profile card */}
+        {!loading && hasSellerProfile && userId && (
+          <Card className="mb-8 border-primary/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Share2 className="h-5 w-5 text-primary" />
+                <h3 className="font-display text-lg font-semibold">Share your profile</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Get the word out — share your Artisaneo profile link with clients and on social media.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={`${window.location.origin}/artisans/${userId}`}
+                  className="font-mono text-sm bg-secondary/50"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/artisans/${userId}`);
+                    toast.success("Link copied to clipboard");
+                  }}
+                >
+                  <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy link
+                </Button>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const link = `${window.location.origin}/artisans/${userId}`;
+                    const cat = serviceCategory || "artisan";
+                    const msg = encodeURIComponent(`I'm now on Artisaneo! Book my ${cat} services here: ${link}`);
+                    window.open(`https://wa.me/?text=${msg}`, "_blank");
+                  }}
+                >
+                  <MessageCircle className="mr-1.5 h-3.5 w-3.5" /> WhatsApp
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/artisans/${userId}`);
+                    toast.success("Link copied — paste it in your Instagram bio");
+                  }}
+                >
+                  <Instagram className="mr-1.5 h-3.5 w-3.5" /> Instagram
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/artisans/${userId}`);
+                    toast.success("Link copied to clipboard");
+                  }}
+                >
+                  <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy for anywhere
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
