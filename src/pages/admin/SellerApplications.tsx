@@ -76,11 +76,11 @@ export const SellerApplications = () => {
         .eq("id", id);
       if (appError) throw appError;
 
-      // If approved, create seller profile and add seller role
+      // If approved, ensure seller profile and role exist (idempotent)
       if (status === "approved") {
         const app = applications.find((a) => a.id === id);
         if (app) {
-          const { error: profileError } = await supabase.from("seller_profiles").insert({
+          const { error: profileError } = await supabase.from("seller_profiles").upsert({
             user_id: app.user_id,
             full_name: app.full_name,
             location: app.country,
@@ -89,14 +89,23 @@ export const SellerApplications = () => {
             service_category: app.product_category,
             shop_description: app.shop_description,
             photo_url: app.sample_photo_url,
-          });
+          }, { onConflict: "user_id" });
           if (profileError) throw profileError;
 
-          const { error: roleError } = await supabase.from("user_roles").insert({
-            user_id: app.user_id,
-            role: "seller",
-          });
-          if (roleError) throw roleError;
+          // Check if role already exists before inserting
+          const { data: existingRole } = await supabase
+            .from("user_roles")
+            .select("user_id")
+            .eq("user_id", app.user_id)
+            .eq("role", "seller")
+            .maybeSingle();
+          if (!existingRole) {
+            const { error: roleError } = await supabase.from("user_roles").insert({
+              user_id: app.user_id,
+              role: "seller",
+            });
+            if (roleError) throw roleError;
+          }
         }
       }
 

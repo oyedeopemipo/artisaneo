@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, MessageSquare, Star, Store, CalendarCheck, Heart } from "lucide-react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ArrowLeft, MapPin, MessageSquare, Star, Store, CalendarCheck, Heart, CircleCheck as CheckCircle2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -37,6 +37,8 @@ const formatGBP = (pence: number) =>
 const PublicSellerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [showLiveBanner, setShowLiveBanner] = useState(searchParams.get("live") === "1");
   const [loading, setLoading] = useState(true);
   const [messageLoading, setMessageLoading] = useState(false);
   const [seller, setSeller] = useState<SellerProfile | null>(null);
@@ -186,6 +188,19 @@ const PublicSellerProfile = () => {
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
       <main className="flex-1">
+        {showLiveBanner && (
+          <div className="border-b border-emerald-200 bg-emerald-50">
+            <div className="container flex items-center justify-between py-3">
+              <p className="flex items-center gap-2 text-sm font-medium text-emerald-800">
+                <CheckCircle2 className="h-4 w-4" />
+                Your profile is live! You can now be found by buyers.
+              </p>
+              <button onClick={() => setShowLiveBanner(false)} className="text-emerald-600 hover:text-emerald-800">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
         <section className="border-b border-border bg-gradient-soft">
           <div className="container py-6">
             <Button variant="ghost" size="sm" asChild>

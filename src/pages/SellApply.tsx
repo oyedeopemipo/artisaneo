@@ -140,7 +140,28 @@ const SellApply = () => {
         sample_photo_url = data.publicUrl;
       }
 
-      const { error } = await supabase.from("seller_applications").insert({
+      // 1. Create the seller profile (status defaults to 'active')
+      const { error: profileError } = await supabase.from("seller_profiles").insert({
+        user_id: userId,
+        full_name: form.full_name.trim(),
+        location: form.country.trim(),
+        bio: form.bio.trim() || null,
+        shop_name: form.shop_name.trim(),
+        service_category: form.product_category,
+        shop_description: form.shop_description.trim(),
+        photo_url: sample_photo_url,
+      });
+      if (profileError) throw profileError;
+
+      // 2. Add seller role
+      const { error: roleError } = await supabase.from("user_roles").insert({
+        user_id: userId,
+        role: "seller",
+      });
+      if (roleError) throw roleError;
+
+      // 3. Also keep the application record for admin visibility
+      const { error: appError } = await supabase.from("seller_applications").insert({
         user_id: userId,
         full_name: form.full_name.trim(),
         email: form.email.trim(),
@@ -152,10 +173,11 @@ const SellApply = () => {
         sample_photo_url,
         payout_method: form.payout_method,
         terms_agreed: form.terms_agreed,
+        status: "approved",
       });
-      if (error) throw error;
+      if (appError) throw appError;
 
-      navigate(`/sell/success?shop=${encodeURIComponent(form.shop_name.trim())}`);
+      navigate(`/artisans/${userId}?live=1`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       toast.error("Could not submit application", { description: msg });

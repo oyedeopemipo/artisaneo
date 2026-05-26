@@ -46,6 +46,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/seller/profile" element={<ProtectedRoute><SellerProfile /></ProtectedRoute>} />
           <Route path="/seller/:id" element={<PublicSellerProfile />} />
+          <Route path="/artisans/:id" element={<PublicSellerProfile />} />
           <Route path="/become-a-seller" element={<BecomeASeller />} />
           <Route path="/sell" element={<BecomeASeller />} />
           <Route path="/sell/apply" element={<ProtectedRoute><SellApply /></ProtectedRoute>} />

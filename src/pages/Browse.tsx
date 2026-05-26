@@ -70,6 +70,7 @@ const Browse = () => {
   const [params, setParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [services, setServices] = useState<ServiceWithCat[]>([]);
+  const [activeSellerIds, setActiveSellerIds] = useState<Set<string>>(new Set());
   const [availableServiceIds, setAvailableServiceIds] = useState<Set<string> | null>(null);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
@@ -86,13 +87,22 @@ const Browse = () => {
       });
   }, []);
 
-  // Load services once
+  // Load services and active seller IDs once
   useEffect(() => {
     supabase
       .from("services")
       .select("*")
       .order("rating", { ascending: false })
       .then(({ data }) => setServices((data as ServiceWithCat[]) ?? []));
+
+    supabase
+      .from("seller_profiles")
+      .select("user_id")
+      .eq("status", "active")
+      .then(({ data }) => {
+        const ids = new Set((data ?? []).map((s) => s.user_id));
+        setActiveSellerIds(ids);
+      });
   }, []);
 
   // Parse filters from URL once categories are loaded
@@ -157,6 +167,9 @@ const Browse = () => {
   // Filter + sort
   const filtered = useMemo(() => {
     let result = services.filter((s) => {
+      // Only show services from active sellers
+      if (activeSellerIds.size > 0 && !activeSellerIds.has(s.seller_id)) return false;
+
       // Category filter (multi-select)
       if (filters.categories.length > 0) {
         const catIds = filters.categories.map((slug) => categoryMap.get(slug)?.id).filter(Boolean);
@@ -213,7 +226,7 @@ const Browse = () => {
     }
 
     return result;
-  }, [services, filters, categoryMap, availableServiceIds]);
+  }, [services, filters, categoryMap, availableServiceIds, activeSellerIds]);
 
   const isAvailabilityLoading = filters.availabilityDate && availableServiceIds === null;
 
