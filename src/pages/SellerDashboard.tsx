@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Calendar as CalendarIcon, CheckCircle2, Clock, DollarSign, Loader2, Pencil, Plus, Trash2, X, Wallet, Image as ImageIcon } from "lucide-react";
+import { Calendar as CalendarIcon, CircleCheck as CheckCircle2, Clock, DollarSign, Loader as Loader2, Pencil, Plus, Trash2, X, Wallet, Image as ImageIcon, ArrowRight, Camera, FileText, Package, CalendarDays, MapPin } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -213,6 +214,23 @@ const SellerDashboard = () => {
     return { monthEarned, pendingPayout, txns };
   }, [bookings, today]);
 
+  // Profile completion tracker — derived from existing state, no new DB columns
+  const completionItems = useMemo(() => [
+    { label: "Add a profile photo", done: !!avatarUrl, weight: 20, icon: Camera, tab: "profile" },
+    { label: "Write a bio", done: bio.trim().length > 0, weight: 20, icon: FileText, tab: "profile" },
+    { label: "Add at least one service", done: services.length > 0, weight: 20, icon: Package, tab: "profile" },
+    { label: "Set your availability", done: hasSellerProfile && availDays.length > 0, weight: 20, icon: CalendarDays, tab: "profile" },
+    { label: "Add your location", done: city.trim().length > 0, weight: 20, icon: MapPin, tab: "profile" },
+  ], [avatarUrl, bio, services, hasSellerProfile, availDays, city]);
+
+  const completionPct = useMemo(() =>
+    completionItems.reduce((sum, item) => sum + (item.done ? item.weight : 0), 0),
+  [completionItems]);
+
+  const incompleteItems = useMemo(() =>
+    completionItems.filter((item) => !item.done),
+  [completionItems]);
+
   const acceptBooking = async (id: string) => {
     const { error } = await supabase.from("bookings").update({ status: "confirmed" }).eq("id", id);
     if (error) return toast.error(error.message);
@@ -328,6 +346,54 @@ const SellerDashboard = () => {
           </h1>
           <p className="mt-2 text-muted-foreground">Manage requests, schedule, earnings, and your public profile.</p>
         </header>
+
+        {/* Profile completion tracker */}
+        {!loading && (
+          <Card className="mb-8">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  {completionPct === 100 ? (
+                    <div className="flex items-center gap-2">
+                      <Badge className="border-emerald-300 bg-emerald-50 text-emerald-700">Profile complete</Badge>
+                      <span className="text-sm text-emerald-600">100%</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">Profile {completionPct}% complete</p>
+                        <span className="text-xs text-muted-foreground">{completionItems.filter((i) => i.done).length}/5 steps</span>
+                      </div>
+                      <Progress value={completionPct} className="mt-2 h-2.5" />
+                    </>
+                  )}
+                </div>
+              </div>
+              {completionPct < 100 && incompleteItems.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+                  {incompleteItems.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => {
+                        const tabEl = document.querySelector('[data-state="inactive"][value="profile"]') as HTMLElement | null;
+                        if (tabEl) tabEl.click();
+                        setTimeout(() => {
+                          const target = document.getElementById(`completion-${item.tab}`);
+                          target?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 100);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                    >
+                      <item.icon className="h-3.5 w-3.5" />
+                      {item.label} <ArrowRight className="h-3 w-3" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {loading ? (
           <div className="grid gap-6 md:grid-cols-2">
@@ -450,7 +516,7 @@ const SellerDashboard = () => {
             </TabsContent>
 
             {/* PROFILE */}
-            <TabsContent value="profile" className="mt-6 space-y-6">
+            <TabsContent value="profile" id="completion-profile" className="mt-6 space-y-6">
               <Card>
                 <CardHeader><CardTitle className="text-lg">Profile & photo</CardTitle></CardHeader>
                 <CardContent className="space-y-6">
