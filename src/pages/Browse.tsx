@@ -71,9 +71,11 @@ const Browse = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [services, setServices] = useState<ServiceWithCat[]>([]);
   const [activeSellerIds, setActiveSellerIds] = useState<Set<string>>(new Set());
+  const [searchMatchServiceIds, setSearchMatchServiceIds] = useState<Set<string> | null>(null);
   const [availableServiceIds, setAvailableServiceIds] = useState<Set<string> | null>(null);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   // Load categories once
   useEffect(() => {
@@ -104,6 +106,53 @@ const Browse = () => {
         setActiveSellerIds(ids);
       });
   }, []);
+
+  // Full-text search: when query changes, search both seller_profiles and services
+  useEffect(() => {
+    if (!filters.query.trim()) {
+      setSearchMatchServiceIds(null);
+      return;
+    }
+
+    const runSearch = async () => {
+      setSearchLoading(true);
+      const query = filters.query.trim();
+
+      // Search seller_profiles.search_vector for matching sellers
+      const { data: sellerMatches } = await supabase
+        .from("seller_profiles")
+        .select("user_id")
+        .eq("status", "active")
+        .textSearch("search_vector", query);
+
+      const matchingSellerIds = new Set((sellerMatches ?? []).map((s) => s.user_id));
+
+      // Search services.search_vector for matching services
+      const { data: svcMatches } = await supabase
+        .from("services")
+        .select("id,seller_id")
+        .textSearch("search_vector", query);
+
+      // A service matches if it directly matches OR its seller matches
+      const matchedIds = new Set<string>();
+      for (const svc of svcMatches ?? []) {
+        matchedIds.add(svc.id);
+      }
+      // Also include all services from matching sellers
+      for (const svc of services) {
+        if (matchingSellerIds.has(svc.seller_id ?? "")) {
+          matchedIds.add(svc.id);
+        }
+      }
+
+      setSearchMatchServiceIds(matchedIds);
+      setSearchLoading(false);
+    };
+
+    // Debounce search by 300ms
+    const timer = setTimeout(() => void runSearch(), 300);
+    return () => clearTimeout(timer);
+  }, [filters.query, services]);
 
   // Parse filters from URL once categories are loaded
   useEffect(() => {
@@ -170,16 +219,13 @@ const Browse = () => {
       // Only show services from active sellers
       if (activeSellerIds.size > 0 && !activeSellerIds.has(s.seller_id)) return false;
 
+      // Full-text search filter (server-side results)
+      if (searchMatchServiceIds !== null && !searchMatchServiceIds.has(s.id)) return false;
+
       // Category filter (multi-select)
       if (filters.categories.length > 0) {
         const catIds = filters.categories.map((slug) => categoryMap.get(slug)?.id).filter(Boolean);
         if (!catIds.includes(s.category_id)) return false;
-      }
-
-      // Text search
-      if (filters.query) {
-        const haystack = `${s.title} ${s.description ?? ""} ${s.city}`.toLowerCase();
-        if (!haystack.includes(filters.query.toLowerCase())) return false;
       }
 
       // Location filter (city/postcode match)
@@ -226,7 +272,7 @@ const Browse = () => {
     }
 
     return result;
-  }, [services, filters, categoryMap, availableServiceIds, activeSellerIds]);
+  }, [services, filters, categoryMap, availableServiceIds, activeSellerIds, searchMatchServiceIds]);
 
   const isAvailabilityLoading = filters.availabilityDate && availableServiceIds === null;
 
@@ -257,9 +303,11 @@ const Browse = () => {
           {/* Result count */}
           <div className="mt-6 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              {isAvailabilityLoading
-                ? "Checking availability..."
-                : `${filtered.length} ${filtered.length === 1 ? "result" : "results"}`}
+              {searchLoading
+                ? "Searching..."
+                : isAvailabilityLoading
+                  ? "Checking availability..."
+                  : `${filtered.length} ${filtered.length === 1 ? "result" : "results"}`}
             </p>
             {activeFilterCount > 0 && (
               <Badge variant="secondary" className="gap-1">
@@ -269,7 +317,7 @@ const Browse = () => {
             )}
           </div>
 
-          {filtered.length === 0 && !isAvailabilityLoading ? (
+          {filtered.length === 0 && !searchLoading && !isAvailabilityLoading ? (
             <div className="mt-12 rounded-xl border border-dashed border-border p-12 text-center">
               <p className="text-muted-foreground">
                 No artisans match your filters. Try broadening your search.
