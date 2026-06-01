@@ -40,15 +40,12 @@ const SellerProfile = () => {
   const [stripeStatus, setStripeStatus] = useState<{ has_account: boolean; complete: boolean }>({ has_account: false, complete: false });
   const [stripeLoading, setStripeLoading] = useState(false);
 
-  const loadStripeStatus = async (uid: string) => {
-    const { data } = await supabase
-      .from("seller_profiles")
-      .select("stripe_account_id, stripe_onboarding_complete")
-      .eq("user_id", uid)
-      .maybeSingle();
+  const loadStripeStatus = async (_uid: string) => {
+    const { data } = await supabase.rpc("get_my_stripe_status");
+    const row = Array.isArray(data) ? data[0] : data;
     setStripeStatus({
-      has_account: !!data?.stripe_account_id,
-      complete: !!data?.stripe_onboarding_complete,
+      has_account: !!row?.has_account,
+      complete: !!row?.complete,
     });
   };
 
