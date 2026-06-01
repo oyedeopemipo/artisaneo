@@ -583,6 +583,13 @@ export type Database = {
         Args: { _service_id: string; _slot_id: string }
         Returns: string
       }
+      get_my_stripe_status: {
+        Args: never
+        Returns: {
+          complete: boolean
+          has_account: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
