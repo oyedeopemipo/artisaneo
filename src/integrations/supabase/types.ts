@@ -273,7 +273,6 @@ export type Database = {
           display_name: string | null
           id: string
           last_seen_at: string | null
-          suspended: boolean
           updated_at: string
         }
         Insert: {
@@ -284,7 +283,6 @@ export type Database = {
           display_name?: string | null
           id: string
           last_seen_at?: string | null
-          suspended?: boolean
           updated_at?: string
         }
         Update: {
@@ -295,63 +293,9 @@ export type Database = {
           display_name?: string | null
           id?: string
           last_seen_at?: string | null
-          suspended?: boolean
           updated_at?: string
         }
         Relationships: []
-      }
-      reports: {
-        Row: {
-          id: string
-          reporter_id: string
-          reported_user_id: string | null
-          booking_id: string | null
-          reason: string
-          description: string
-          status: string
-          admin_notes: string | null
-          resolved_by: string | null
-          resolved_at: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          reporter_id: string
-          reported_user_id?: string | null
-          booking_id?: string | null
-          reason?: string
-          description?: string
-          status?: string
-          admin_notes?: string | null
-          resolved_by?: string | null
-          resolved_at?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          reporter_id?: string
-          reported_user_id?: string | null
-          booking_id?: string | null
-          reason?: string
-          description?: string
-          status?: string
-          admin_notes?: string | null
-          resolved_by?: string | null
-          resolved_at?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reports_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       reviews: {
         Row: {
