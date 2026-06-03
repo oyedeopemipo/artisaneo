@@ -273,6 +273,7 @@ export type Database = {
           display_name: string | null
           id: string
           last_seen_at: string | null
+          suspended: boolean
           updated_at: string
         }
         Insert: {
@@ -283,6 +284,7 @@ export type Database = {
           display_name?: string | null
           id: string
           last_seen_at?: string | null
+          suspended?: boolean
           updated_at?: string
         }
         Update: {
@@ -293,6 +295,52 @@ export type Database = {
           display_name?: string | null
           id?: string
           last_seen_at?: string | null
+          suspended?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          admin_notes: string | null
+          booking_id: string | null
+          created_at: string
+          description: string
+          id: string
+          reason: string
+          reported_user_id: string | null
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          booking_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          reason: string
+          reported_user_id?: string | null
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          booking_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          reason?: string
+          reported_user_id?: string | null
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
