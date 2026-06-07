@@ -440,6 +440,7 @@ export type Database = {
           id: string
           location: string
           photo_url: string | null
+          search_vector: unknown
           service_category: string
           shop_description: string
           shop_name: string
@@ -459,6 +460,7 @@ export type Database = {
           id?: string
           location: string
           photo_url?: string | null
+          search_vector?: unknown
           service_category: string
           shop_description: string
           shop_name: string
@@ -478,6 +480,7 @@ export type Database = {
           id?: string
           location?: string
           photo_url?: string | null
+          search_vector?: unknown
           service_category?: string
           shop_description?: string
           shop_name?: string
@@ -562,6 +565,7 @@ export type Database = {
           price_pence: number
           rating: number | null
           review_count: number | null
+          search_vector: unknown
           seller_id: string | null
           title: string
         }
@@ -575,6 +579,7 @@ export type Database = {
           price_pence: number
           rating?: number | null
           review_count?: number | null
+          search_vector?: unknown
           seller_id?: string | null
           title: string
         }
@@ -588,6 +593,7 @@ export type Database = {
           price_pence?: number
           rating?: number | null
           review_count?: number | null
+          search_vector?: unknown
           seller_id?: string | null
           title?: string
         }
