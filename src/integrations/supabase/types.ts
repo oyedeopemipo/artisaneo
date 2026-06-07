@@ -302,48 +302,56 @@ export type Database = {
       }
       reports: {
         Row: {
-          admin_notes: string | null
-          booking_id: string | null
-          created_at: string
-          description: string
           id: string
-          reason: string
-          reported_user_id: string | null
           reporter_id: string
-          resolved_at: string | null
-          resolved_by: string | null
+          reported_user_id: string | null
+          booking_id: string | null
+          reason: string
+          description: string
           status: string
+          admin_notes: string | null
+          resolved_by: string | null
+          resolved_at: string | null
+          created_at: string
           updated_at: string
         }
         Insert: {
-          admin_notes?: string | null
-          booking_id?: string | null
-          created_at?: string
-          description: string
           id?: string
-          reason: string
-          reported_user_id?: string | null
           reporter_id: string
-          resolved_at?: string | null
-          resolved_by?: string | null
+          reported_user_id?: string | null
+          booking_id?: string | null
+          reason?: string
+          description?: string
           status?: string
+          admin_notes?: string | null
+          resolved_by?: string | null
+          resolved_at?: string | null
+          created_at?: string
           updated_at?: string
         }
         Update: {
-          admin_notes?: string | null
-          booking_id?: string | null
-          created_at?: string
-          description?: string
           id?: string
-          reason?: string
-          reported_user_id?: string | null
           reporter_id?: string
-          resolved_at?: string | null
-          resolved_by?: string | null
+          reported_user_id?: string | null
+          booking_id?: string | null
+          reason?: string
+          description?: string
           status?: string
+          admin_notes?: string | null
+          resolved_by?: string | null
+          resolved_at?: string | null
+          created_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reports_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -630,13 +638,6 @@ export type Database = {
       create_booking: {
         Args: { _service_id: string; _slot_id: string }
         Returns: string
-      }
-      get_my_stripe_status: {
-        Args: never
-        Returns: {
-          complete: boolean
-          has_account: boolean
-        }[]
       }
       has_role: {
         Args: {
